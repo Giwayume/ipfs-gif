@@ -1,0 +1,31 @@
+[package]
+name = "ipfs-gif"
+version = "0.1.0"
+edition = "2024"
+
+[build-dependencies]
+memory-serve = "2.1.0"
+
+[dependencies]
+askama = "0.16.0"
+askama_escape = "0.16.0"
+axum = { version = "0.8.9", features = ["macros", "multipart"] }
+chrono = "0.4.45"
+garde = { version = "0.23.0", features = ["derive", "email", "regex"] }
+image = "0.25.10"
+macros = { path = "./macros" }
+memory-serve = "2.1.0"
+regex = "1.12.4"
+serde = "1.0.228"
+serde_json = "1.0.150"
+serde_qs = "1.1.2"
+serde_urlencoded = "0.7.1"
+size = "0.5.0"
+sqlx = { version = "0.9.0", features = ["chrono", "mysql", "runtime-tokio"] }
+tokio = { version = "1.52.3", features = ["full"] }
+toml = "1.1.2"
+tower-http = { version = "0.7.0", features = ["fs"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+urlencoding = "2.1.3"
+uuid = { version = "1.23.4", features = ["v4", "fast-rng", "macro-diagnostics"] }

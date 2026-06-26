@@ -1,0 +1,521 @@
+@import url('http://fonts.googleapis.com/css?family=Open+Sans');
+
+@font-face {
+    font-family: 'Andrew Andreas Plain';
+    src: url('../fonts/andrew-andreas-plain.woff');
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Andrew Andreas Plain', Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #111827;
+    color: white;
+}
+
+:root {
+    --border-radius-base: 0.5rem;
+
+    --background-color-base: #111827;
+    --background-color-base-alt: #0b0f18;
+    --border-color-base: #172238;
+    --border-color-base-alt: #1c2d4c;
+
+    --accent-color-primary: #22d3ee;
+    --accent-color-secondary: #f472b6;
+
+    --text-color-base: white;
+    --text-color-muted: #b0b0b0;
+
+    --close-button-mask: url("data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%2216%22 height%3D%2216%22 fill%3D%22currentColor%22 class%3D%22bi bi-x%22 viewBox%3D%220 0 16 16%22%3E%3Cpath d%3D%22M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708%22%2F%3E%3C%2Fsvg%3E");
+
+    --form-control-background-color: var(--background-color-base);
+    --form-control-border-color: var(--border-color-base);
+    --form-control-hover-background-color: var(--background-color-base);
+    --form-control-hover-border-color: var(--border-color-base-alt);
+    --form-control-focus-border-color: var(--accent-color-primary);
+    --form-control-label-text-color: var(--text-color-base);
+    --form-control-text-color: var(--text-color-base);
+}
+
+
+
+/* Header */
+
+header {
+    height: 5rem;
+    padding: 0 1rem;
+    margin: 0 auto;
+    max-width: 1024px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0f172a;
+}
+
+.header__logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #22d3ee;
+}
+
+.header__logo img {
+    height: 3rem;
+}
+
+.header nav {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.header nav a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Home - Hero */
+
+.home__hero {
+    text-align: center;
+    padding: 90px 20px;
+    background:
+    linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.7)), url("/assets/images/site/home-hero.png") center/cover;
+}
+
+.home__hero h1 {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.home__hero p {
+    color: #cbd5e1;
+    font-size: 20px;
+}
+
+
+.home__search-box {
+    margin: 35px auto;
+    max-width: 650px;
+    display: flex;
+}
+
+.home__search-box input {
+    flex: 1;
+    padding: 18px;
+    border-radius: 30px 0 0 30px;
+    border: none;
+    font-size: 16px;
+}
+
+.home__search-box button {
+    padding: 0 30px;
+    border: none;
+    background: #22d3ee;
+    border-radius: 0 30px 30px 0;
+    cursor: pointer;
+}
+
+
+.home__upload-button {
+    padding: 15px 35px;
+    border-radius: 30px;
+    border: none;
+    background: #f472b6;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+
+/* Tags */
+
+.tags {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 2rem 1rem;
+    margin: 0 auto;
+    max-width: 1024px;
+}
+
+.tags a {
+    background: #1e293b;
+    padding: 12px 25px;
+    border-radius: 30px;
+}
+
+
+/* GIF Grid */
+
+.trending {
+    padding: 2.5rem 1rem;
+    margin: 0 auto;
+    max-width: 1024px;
+}
+
+.trending h2 {
+    margin-bottom: 25px;
+}
+
+.gif-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    /* grid-auto-rows: 1px; */
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.gif-card {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: #1e293b;
+    height: 280px;
+}
+
+.gif-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: .3s;
+}
+
+.gif-card:hover img {
+    transform: scale(1.08);
+}
+
+/* Gif Details */
+
+.gif-search {
+    display: flex;
+    padding: 1rem 1rem;
+    margin: 0 auto;
+    max-width: 1024px;
+}
+.gif-search input {
+    flex: 1;
+    padding: 18px;
+    border-radius: 30px 0 0 30px;
+    border: none;
+    font-size: 16px;
+}
+
+.gif-search button {
+    padding: 0 30px;
+    border: none;
+    background: #22d3ee;
+    border-radius: 0 30px 30px 0;
+    cursor: pointer;
+}
+
+.gif-detail {
+    background: var(--background-color-base-alt);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 8%;
+    gap: 2rem;
+}
+@media screen and (max-width: 800px) {
+    .gif-detail {
+        flex-direction: column;
+    }
+}
+
+.gif-preview > img {
+    flex-grow: 1;
+    transition: .3s;
+    border-radius: 1rem;
+    overflow: hidden;
+    max-width: 70vw;
+    max-height: 80vh;
+}
+
+.gif-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.gif-actions a,
+.gif-actions button {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: white;
+    font-size: 1rem;
+    text-decoration: none;
+    font-size: 1.25rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+.gif-actions a .bi,
+.gif-actions button .bi {
+    width: 1.5rem;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+.gif-actions a:hover .bi,
+.gif-actions button:hover .bi {
+    transform: scale(1.125);
+    transition: transform 0.2s;
+}
+
+/* Form Control */
+
+.form-control {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    background-color: var(--form-control-background-color);
+    border: 0.125rem solid var(--form-control-border-color);
+    border-radius: var(--border-radius-base);
+    width: 100%;
+    transition: background-color 0.5s;
+}
+.form-control--select {
+    cursor: pointer;
+}
+.form-control:has(:disabled) {
+    background-color: var(--background-color-base-alt) !important;
+    border-color: transparent !important;
+    color: var(--text-color-muted) !important;
+    pointer-events: none !important;
+}
+.form-control:hover {
+    background-color: var(--form-control-hover-background-color);
+    border-color: var(--form-control-hover-border-color);
+}
+.form-control:focus-within {
+    background-color: var(--form-control-background-color);
+    border-color: var(--form-control-focus-border-color);
+    transition: none;
+}
+.form-control label {
+    display: block;
+    padding: 0.5rem 0.75rem 0 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1rem;
+    color: var(--form-control-label-text-color);
+    cursor: text;
+}
+.form-control.form-control--select label {
+    cursor: pointer;
+    padding-right: 2rem;
+}
+.form-control:has(input:disabled, select:disabled) label {
+    color: var(--text-color-muted) !important;
+}
+.form-control label + input {
+    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+    padding: 0.25rem 0.75rem 0.5rem 0.75rem;
+}
+.form-control label + input[type="file"] {
+    padding-top: 0;
+    margin-top: 0.25rem;
+}
+.form-control.form-control--select label + input {
+    padding-right: 2rem;
+}
+.form-control input,
+.form-control select,
+.form-control textarea {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    background-color: transparent;
+    border: none;
+    border-radius: var(--border-radius-base);
+    color: var(--form-control-text-color);
+    font-size: 1rem;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+.form-control select {
+    cursor: pointer;
+    background: transparent;
+    padding-right: 2rem;
+    padding-top: 1.75rem;
+    margin-top: -1.5rem;
+}
+.form-control textarea {
+    min-height: 10rem;
+    resize: vertical;
+}
+.form-control input:focus,
+.form-control select:focus,
+.form-control textarea:focus {
+    outline: none;
+}
+.form-control:has(:disabled) input,
+.form-control:has(:disabled) select,
+.form-control:has(:disabled) textarea {
+    color: var(--text-color-muted) !important;
+}
+
+.form-control--small label {
+    font-size: 0.625rem;
+    padding: 0.35rem 0.65rem 0 0.65rem;
+}
+.form-control--small input {
+    font-size: 0.875rem;
+    padding: 0.35rem 0.65rem;
+}
+
+.form-control__select-arrow {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Form Group */
+
+.form-group {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+}
+.form .form-group > .form-group,
+.form .form-group > .form-control {
+    margin: 0;
+    flex: 1 0 0;
+}
+
+/* Label / Data */
+
+dl {
+    padding: 0;
+    margin: 0;
+}
+dl + dl {
+    margin-top: 1rem;
+}
+dl dt {
+    font-size: 1rem;
+    color: var(--text-color-muted);
+    margin-bottom: 0.25rem;
+}
+dl dd {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-color-base);
+}
+dl dd + dt {
+    margin-top: 1rem;
+}
+
+
+.description-group {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.description-group > dl {
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Dialogs */
+
+dialog {
+    background: #111827;
+    color: white;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;
+    padding: 1.5rem;
+    margin: 0;
+    max-width: 80vw;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+dialog > h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0 2rem 0 0;
+}
+
+dialog > p {
+    margin: 1rem 0;
+}
+dialog > p:first-child {
+    margin-top: 0;
+}
+dialog > p:last-child {
+    margin-bottom: 0;
+}
+
+.dialog__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: white;
+    mask: var(--close-button-mask);
+    mask-size: 2.5rem;
+    --webkit-mask: var(--close-button-mask);
+    width: 2.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+    overflow: hidden;
+    text-indent: -9999px;
+}
+
+/* Footer */
+
+footer {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+}
+
+
+/* Mobile */
+
+@media(max-width:700px){
+    
+    .hero h1 {
+        font-size: 35px;
+    }
+    
+    nav a {
+        display:none;
+    }
+    
+    .search-box {
+        flex-direction:column;
+    }
+    
+    .search-box input,
+    .search-box button {
+        border-radius:30px;
+        margin:5px;
+        padding:15px;
+    }
+    
+}

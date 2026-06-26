@@ -1,0 +1,85 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Home{% endblock %}
+
+{% block page_content %}
+<form action="/search/" class="gif-search">
+    <input type="text" name="q" placeholder="Search all GIFs...">
+    <button type="submit">Search</button>
+</form>
+<section class="gif-detail">
+    <div class="gif-preview">
+        <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
+    </div>
+    <span class="gif-actions">
+        <a href="#" onclick="event.preventDefault(); copyLink('https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}')">
+            <span class="bi bi-link" aria-hidden="true"></span>
+            Copy Link
+        </a>
+        <a href="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}&download=true" target="_blank">
+            <span class="bi bi-download" aria-hidden="true"></span>
+            Download
+        </a>
+        <br>
+        <button command="show-modal" commandfor="gif-embed-code">
+            <span class="bi bi-code" aria-hidden="true"></span>
+            Embed
+        </button>
+        <button command="show-modal" commandfor="gif-info">
+            <span class="bi bi-info-circle" aria-hidden="true"></span>
+            Info
+        </button>
+        <a href="/report/{{ gif.cid }}/">
+            <span class="bi bi-flag" aria-hidden="true"></span>
+            Report
+        </a>
+    </span>
+</section>
+
+{% if tags.len() > 0 %}
+<section class="tags">
+    {% for tag in tags %}
+        <a href="/tag/{{ tag }}">{{ tag }}</a>
+    {% endfor %}
+</section>
+{% endif %}
+
+<dialog id="gif-embed-code">
+    <button class="dialog__close" commandfor="gif-embed-code" command="close">Close</button>
+    <h2>Embed this GIF</h2>
+    <p>Use this embed code to add this GIF to your website or blog!</p>
+    <div class="form-control">
+        <textarea aria-label="GIF Embed Code" maxlength="30" rows="4"><img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}"></textarea>
+    </div>
+</dialog>
+
+<dialog id="gif-info" style="width: 30rem">
+    <button class="dialog__close" commandfor="gif-info" command="close">Close</button>
+    <h2>GIF Info</h2>
+    <div class="description-group">
+        <dl>
+            <dt>Upload Date</dt>
+            <dd>
+                <time
+                    datetime="{{ gif.upload_time.format("%F").to_string() }}"
+                    data-is="timestamp"
+                >{{ gif.upload_time }}</time>
+            </dd>
+            <dt>Dimensions</dt>
+            <dd>
+                {{ gif.width }} x {{ gif.height }} px
+            </dd>
+        </dl>
+        <dl>
+            <dt>Frames</dt>
+            <dd>
+                {{ gif.frames }}
+            </dd>
+            <dt>Size</dt>
+            <dd>
+                {{ size::Size::from_bytes(gif.size.clone()) }}
+            </dd>
+        </dl>
+    </div>
+</dialog>
+{% endblock %}

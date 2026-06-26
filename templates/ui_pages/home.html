@@ -1,0 +1,39 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Home{% endblock %}
+
+{% block page_content %}
+<section class="home__hero">
+    <h1>Find. Share. Create GIFs.</h1>
+    <p>The fastest way to discover and share animated moments.</p>
+    
+    <form action="/search/" class="home__search-box">
+        <input type="text" name="q" placeholder="Search millions of GIFs...">
+        <button type="submit">Search</button>
+    </form>
+    
+    <button class="home__upload-button">
+        Upload Your GIF
+    </button>
+</section>
+
+<section class="tags">
+    <a>Funny</a>
+    <a>Memes</a>
+    <a>Reaction</a>
+    <a>Gaming</a>
+    <a>Animals</a>
+    <a>Movies</a>
+</section>
+
+<section class="trending">
+    <h2>Trending GIFs</h2>
+    <div class="gif-grid">
+        {% for gif in popular_gifs %}
+        <a href="/gif/{{ gif.cid }}" class="gif-card">
+            <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}" loading="lazy">
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
