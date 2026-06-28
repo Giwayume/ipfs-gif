@@ -8,9 +8,13 @@ use tower_http::{
     services::{ ServeDir },
 };
 
+pub mod api;
+pub mod dcma;
 pub mod gif;
 pub mod home;
 pub mod page_not_found;
+pub mod privacy_policy;
+pub mod terms_of_service;
 
 pub fn initialize() -> Router {
     // Static assets
@@ -27,8 +31,20 @@ pub fn initialize() -> Router {
         .route("/404", get(page_not_found::get_page_not_found))
         .route("/404/", get(page_not_found::get_page_not_found))
 
+        .route("/api", get(api::get_api))
+        .route("/api/", get(api::get_api))
+
+        .route("/dcma", get(dcma::get_dcma))
+        .route("/dcma/", get(dcma::get_dcma))
+
         .route("/gif/{cid}", get(gif::get_gif))
         .route("/gif/{cid}/", get(gif::get_gif))
+
+        .route("/privacy-policy", get(privacy_policy::get_privacy_policy))
+        .route("/privacy-policy/", get(privacy_policy::get_privacy_policy))
+
+        .route("/terms-of-service", get(terms_of_service::get_terms_of_service))
+        .route("/terms-of-service/", get(terms_of_service::get_terms_of_service))
 
         .fallback_service(get_service(ServeDir::new(uploaded_files_path)));
 

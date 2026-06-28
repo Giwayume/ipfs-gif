@@ -486,6 +486,65 @@ dialog > p:last-child {
     text-indent: -9999px;
 }
 
+/* Content Section */
+
+.content-section {
+    background: var(--background-color-base-alt);
+}
+.content-section__content {
+    padding: 2.5rem 1rem;
+    margin: 0 auto;
+    max-width: 1024px;
+}
+.content-section h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+.content-section p {
+    margin: 1rem 0;
+    line-height: 1.4rem;
+}
+.content-section p:first-child {
+    margin-top: 0;
+}
+.content-section p:last-child {
+    margin-bottom: 0;
+}
+.content-section ul,
+.content-section ol {
+    padding: 0 0 0 2.5rem;
+    line-height: 1.4rem;
+}
+.content-section ul > li,
+.content-section ol > li {
+    margin: 0.25rem 0;
+}
+.content-section a[href] {
+    color: var(--accent-color-primary);
+}
+.content-section a[href]:visited {
+    color: var(--accent-color-primary);
+}
+
+table {
+    border: 1px solid white;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+table td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid white;
+}
+
+code {
+    display: block;
+    background: black;
+    padding: 0.5rem;
+    margin: 1rem 0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
 /* Footer */
 
 footer {
@@ -494,6 +553,9 @@ footer {
     color: #94a3b8;
 }
 
+footer a[href] {
+    color: white;
+}
 
 /* Mobile */
 

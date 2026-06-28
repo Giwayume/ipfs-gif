@@ -28,6 +28,9 @@ proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 You must create a "secrets.toml" file at `/config/secrets.toml` to provide the credentials to connect to a SQL database and IPFS server. Here is an example of how that file should look:
 
 ```
+[website]
+host = "gif.reeksite.com"
+
 [database]
 host = "localhost"
 port = 3306
@@ -37,6 +40,10 @@ password = "password"
 [ipfs]
 host = "localhost"
 port = 5001
+
+[contact]
+arbitration_opt_out_email = "arbitration@example.com"
+dcma_email = "dcma@example.com"
 ```
 
 Without this file, the application will not run. Ensure that the `secrets.toml` file has restrictive file permissions.
@@ -48,6 +55,10 @@ ipfs-gif stores all of its metadata in a MySQL database. It may work in similar 
 ### 2. IPFS Server
 
 GIFs are uploaded and pinned to the [IPFS](https://ipfs.tech/) server you specify.
+
+### 3. Contact Info
+
+This is mostly information used for legal contacts.
 
 ## Building / Running
 

@@ -1311,6 +1311,7 @@ dependencies = [
  "image",
  "macros",
  "memory-serve",
+ "once_cell",
  "regex",
  "serde",
  "serde_json",
