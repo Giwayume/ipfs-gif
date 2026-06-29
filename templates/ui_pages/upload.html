@@ -1,0 +1,57 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Upload GIF{% endblock %}
+
+{% block page_content %}
+<section class="upload-section">
+    <h1>Upload a GIF</h1>
+    <form id="upload-form" action="/upload/" method="POST">
+        <div class="upload-section__columns">
+            <div class="upload-gif-card">
+                <input id="gif-file" type="file" name="file">
+                <label for="gif-file">
+                    <span class="bi bi-filetype-gif"></span>
+                    <p>Accepted formats: PNG, GIF, WebP</p>
+                    <div class="upload-gif-card__button">
+                        Choose File
+                    </div>
+                </label>
+            </div>
+            <div class="upload-gif-card">
+                <h2>Want to edit GIFs?</h2>
+                <p>Try these free tools:</p>
+                <ul>
+                    <li>
+                        <a href="https://lettier.github.io/gifcurry/" target="_blank">Gifcurry</a>
+                    </li>
+                    <li>
+                        <a href="https://www.gimp.org/" target="_blank">GIMP</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="form-control">
+                <label for="gif-description" name="description">Description</label>
+                <input id="gif-description" autocomplete="off">
+            </div>
+        </div>
+        <input type="hidden"> <!-- TODO: generate inputs for already added tags -->
+    </form>
+    <form action="/upload/" method="POST">
+        <h2>Add Search Tags</h2>
+        <p>Please create at least 3 tags that will help people discover this GIF.</p>
+        <div class="tags">
+            <div class="tags__add-combo-button">
+                <input name="new-tag-name" placeholder="Type a tag name..." aria-label="Enter a new tag name" autocomplete="off" autocapitalize="off">
+                <button type="submit" aria-label="Add tag" name="action" value="add-tag">
+                    <span class="bi bi-plus"></span>
+                </button>
+            </div>
+        </div>
+    </form>
+    <button form="upload-form" type="submit" class="upload__submit">
+        Submit
+    </button>
+</section>
+{% endblock %}

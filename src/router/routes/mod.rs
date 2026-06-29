@@ -15,6 +15,7 @@ pub mod home;
 pub mod page_not_found;
 pub mod privacy_policy;
 pub mod terms_of_service;
+pub mod upload;
 
 pub fn initialize() -> Router {
     // Static assets
@@ -45,6 +46,9 @@ pub fn initialize() -> Router {
 
         .route("/terms-of-service", get(terms_of_service::get_terms_of_service))
         .route("/terms-of-service/", get(terms_of_service::get_terms_of_service))
+
+        .route("/upload", get(upload::get_upload))
+        .route("/upload/", get(upload::get_upload))
 
         .fallback_service(get_service(ServeDir::new(uploaded_files_path)));
 
