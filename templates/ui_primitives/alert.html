@@ -1,0 +1,4 @@
+<div class="alert alert--fade-in alert--{{ variant }}" role="alert" aria-live="polite">
+    <span class="bi {{ self::get_icon_class(variant) }}" aria-hidden="true"></span>
+    {{ message_html|safe }}
+</div>

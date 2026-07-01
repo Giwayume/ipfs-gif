@@ -29,7 +29,7 @@ You must create a "secrets.toml" file at `/config/secrets.toml` to provide the c
 
 ```
 [website]
-host = "gif.reeksite.com"
+host = "example.com"
 
 [database]
 host = "localhost"
@@ -38,6 +38,7 @@ user = "admin"
 password = "password"
 
 [ipfs]
+protocol = "http:"
 host = "localhost"
 port = 5001
 
@@ -52,9 +53,9 @@ Without this file, the application will not run. Ensure that the `secrets.toml` 
 
 ipfs-gif stores all of its metadata in a MySQL database. It may work in similar SQL databases like MariaDB, but this is not guaranteed.
 
-### 2. IPFS Server
+### 2. IPFS Node
 
-GIFs are uploaded and pinned to the [IPFS](https://ipfs.tech/) server you specify.
+GIFs are uploaded and pinned to the [IPFS](https://ipfs.tech/) node you specify, using the [Kubo RPC API](https://docs.ipfs.tech/reference/kubo/rpc/).
 
 ### 3. Contact Info
 

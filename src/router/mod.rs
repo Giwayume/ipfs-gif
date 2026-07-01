@@ -9,6 +9,7 @@ use crate::util::error::RenderingError;
 
 pub mod context;
 pub mod routes;
+pub mod validation;
 pub use routes::initialize;
 
 use context::{ RouteContext };

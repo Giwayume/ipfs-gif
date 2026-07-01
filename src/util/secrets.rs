@@ -5,19 +5,27 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct SecretsConfig {
-    pub website: SecretsConfigWebsite,
     pub contact: SecretsConfigContact,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct SecretsConfigWebsite {
-    pub host: String,
+    pub ipfs: SecretsConfigIpfs,
+    pub website: SecretsConfigWebsite,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct SecretsConfigContact {
     pub arbitration_opt_out_email: String,
     pub dcma_email: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SecretsConfigIpfs {
+    pub protocol: String,
+    pub host: String,
+    pub port: u16,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SecretsConfigWebsite {
+    pub host: String,
 }
 
 static SECRETS_CONFIG: Lazy<SecretsConfig> = Lazy::new(|| {

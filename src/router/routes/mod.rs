@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
 use axum::{
-    routing::{ get, get_service },
+    extract::{ DefaultBodyLimit },
+    routing::{ delete, get, get_service, post },
     Router,
 };
 use tower_http::{
@@ -49,6 +50,8 @@ pub fn initialize() -> Router {
 
         .route("/upload", get(upload::get_upload))
         .route("/upload/", get(upload::get_upload))
+        .route("/upload", post(upload::post_upload).layer(DefaultBodyLimit::max(1024 * 1024 * 12)))
+        .route("/upload/", post(upload::post_upload).layer(DefaultBodyLimit::max(1024 * 1024 * 12)))
 
         .fallback_service(get_service(ServeDir::new(uploaded_files_path)));
 

@@ -5,13 +5,26 @@
 {% block page_content %}
 <section class="upload-section">
     <h1>Upload a GIF</h1>
-    <form id="upload-form" action="/upload/" method="POST">
+    <form
+        id="upload-form"
+        enctype="multipart/form-data"
+        action="/upload/"
+        method="POST"
+        hx-boost="true"
+        hx-push-url="true"
+        hx-target="#main-article"
+        hx-swap="outerHtml"
+    >
+        {% if let Some(validation_alert) = validation_alert %}
+            {{ validation_alert|safe }}
+        {% endif %}
         <div class="upload-section__columns">
             <div class="upload-gif-card">
-                <input id="gif-file" type="file" name="file">
                 <label for="gif-file">
                     <span class="bi bi-filetype-gif"></span>
-                    <p>Accepted formats: PNG, GIF, WebP</p>
+                    <p>Accepted formats: AVIF, APNG, GIF, WebP</p>
+                    <input id="gif-file" type="file" name="file">
+                    <input type="hidden" name="temporary-file" value="{{ temporary_file_filename }}" autocomplete="off">
                     <div class="upload-gif-card__button">
                         Choose File
                     </div>
@@ -30,25 +43,100 @@
                 </ul>
             </div>
         </div>
+        <img
+            id="file-preview"
+            src="{{ temporary_file_filepath }}"
+            alt="Uploaded image"
+            class="upload-section__image-preview"
+            {% if temporary_file_filepath.len() == 0 %}hidden{% endif %}
+        >
+        <script>
+            (() => {
+                const gifFileInput = document.getElementById('gif-file');
+                const filePreview = document.getElementById('file-preview');
+                let filePreviewUrl = '';
+                gifFileInput.addEventListener('change', (event) => {
+                    if (!gifFileInput.files[0]) return;
+                    if (filePreviewUrl) {
+                        URL.revokeObjectURL(filePreviewUrl);
+                    }
+                    filePreviewUrl = URL.createObjectURL(gifFileInput.files[0]);
+                    filePreview.src = filePreviewUrl;
+                    filePreview.removeAttribute('hidden');
+                });
+            })();
+        </script>
         <div class="form-group">
             <div class="form-control">
-                <label for="gif-description" name="description">Description</label>
-                <input id="gif-description" autocomplete="off">
+                <label for="gif-description">Description</label>
+                <input id="gif-description" name="description" required autocomplete="off" maxlength="256" value="{{ description }}">
             </div>
         </div>
-        <input type="hidden"> <!-- TODO: generate inputs for already added tags -->
-    </form>
-    <form action="/upload/" method="POST">
         <h2>Add Search Tags</h2>
-        <p>Please create at least 3 tags that will help people discover this GIF.</p>
-        <div class="tags">
+        <p id="add-search-tag-instructions">
+            Please create at least 3 tags that will help people discover this GIF.<br>
+            Use commas to separate tag names.
+        </p>
+        <script>
+            (() => {
+                document.getElementById('add-search-tag-instructions').textContent = 'Please create at least 3 tags that will help people discover this GIF.';
+            })();
+        </script>
+        {% block upload_tags %}
+        <div id="upload-tags" class="tags">
+            <input type="hidden" name="tags" value="{{ tags }}">
+            {% for tag in tags_split %}
+            <div class="tag">
+                {{ tag }}
+                <button
+                    type="button"
+                    aria-label="Remove tag"
+                    hidden
+                    class="bi bi-x"
+                    hx-post="/upload/"
+                    hx-include="#upload-form"
+                    hx-vals="{&quot;delete-tag-name&quot;:&quot;{{tag}}&quot;}"
+                    hx-target="#upload-tags"
+                    hx-swap="outerHtml"
+                ></button>
+            </div>
+            {% endfor %}
             <div class="tags__add-combo-button">
-                <input name="new-tag-name" placeholder="Type a tag name..." aria-label="Enter a new tag name" autocomplete="off" autocapitalize="off">
-                <button type="submit" aria-label="Add tag" name="action" value="add-tag">
+                <input id="new-tag-name-input" name="new-tag-name" placeholder="Example: dog, frisbee" aria-label="Enter a new tag name" autocomplete="off" autocapitalize="off">
+                <button
+                    id="new-tag-submit-button"
+                    type="button"
+                    hidden
+                    aria-label="Add tag"
+                    hx-post="/upload/"
+                    hx-include="#upload-form"
+                    hx-target="#upload-tags"
+                    hx-swap="outerHtml"
+                >
                     <span class="bi bi-plus"></span>
                 </button>
             </div>
+            <script>
+                (() => {
+                    const uploadForm = document.getElementById('upload-form');
+                    const newTagNameInput = document.getElementById('new-tag-name-input');
+                    const newTagSubmitButton = document.getElementById('new-tag-submit-button');
+                    const uploadTags = document.getElementById('upload-tags');
+
+                    uploadTags.querySelectorAll('.tag button').forEach((button) => button.removeAttribute('hidden'));
+
+                    newTagNameInput.placeholder = 'Type a tag name...';
+                    newTagSubmitButton.removeAttribute('hidden');
+                    newTagNameInput.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            newTagSubmitButton.click();
+                        }
+                    });
+                })();
+            </script>
         </div>
+        {% endblock %}
     </form>
     <button form="upload-form" type="submit" class="upload__submit">
         Submit

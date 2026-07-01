@@ -7,12 +7,12 @@
     <div class="content-section__content">
         <h1>Developer API</h1>
         <p>
-            The primary purpose of this website is to build a GIF database that anyone is free to search through.
+            The primary purpose of this website is to build a public database of GIFs hosted on IPFS that anyone is free to search through.
             We host a simple API that any client can use to find GIFs without the need for authentication or an API key.
             Note that the API may impose rate limiting based on IP address in order to prevent bot abuse.
         </p>
         <h2>Searching for GIFs</h2>
-        <p>GIFs are organized by search terms called "tags". When the user types text to search for a GIF, the tags are used to identify GIFs.</p>
+        <p>GIFs are organized by search terms called "tags". When the user searches for a GIF, the tags are used to match search terms.</p>
         <p>
             <strong>Request Method:</strong>
             GET
@@ -48,8 +48,8 @@
 }</code>
         </p>
         <p>
-            The "cid" is the content ID of the GIF as hosted on <a href="https://ipfs.tech">IPFS</a>. You can build a link to the GIF
-            by using any <a href="https://docs.ipfs.tech/how-to/gateway-best-practices/#selecting-a-gateway-type-to-use">IPFS gateway</a>
+            The "cid" is the content ID of the GIF as hosted on <a href="https://ipfs.tech" target="_blank">IPFS</a>. You can build a link to the GIF
+            by using any <a href="https://docs.ipfs.tech/how-to/gateway-best-practices/#selecting-a-gateway-type-to-use" target="_blank">IPFS gateway</a>
             of your choice. For example, using the demo search response above:
         </p>
         <p>
