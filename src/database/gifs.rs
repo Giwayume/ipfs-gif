@@ -18,10 +18,10 @@ pub struct Gif {
     pub filename: String,
     pub description: String,
     pub popularity: u64,
-    pub width: u16,
-    pub height: u16,
-    pub size: u16,
-    pub frames: u16,
+    pub width: u32,
+    pub height: u32,
+    pub size: u32,
+    pub frames: u32,
 }
 
 pub async fn get_popular_gifs(start: u64, length: u64) -> Result<Vec<Gif>, Box<dyn Error>> {

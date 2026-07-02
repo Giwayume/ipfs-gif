@@ -14,7 +14,7 @@ async fn create_gifs_table() -> Result<(), Box<dyn Error + Send + Sync>> {
     let result = sqlx::query_as::<MySql, IgnoreDataType>(r#"
         CREATE TABLE IF NOT EXISTS gifs (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            cid VARCHAR(128) DEFAULT '',
+            cid VARCHAR(128) NOT NULL UNIQUE,
             upload_time DATETIME DEFAULT NOW(),
             uploader_public_key VARCHAR(64) DEFAULT '',
             uploader_ip_address VARCHAR(64) DEFAULT '',

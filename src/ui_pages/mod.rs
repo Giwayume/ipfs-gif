@@ -4,5 +4,7 @@ pub mod home;
 pub mod gif;
 pub mod page_not_found;
 pub mod privacy_policy;
+pub mod report;
+pub mod tag;
 pub mod terms_of_service;
 pub mod upload;

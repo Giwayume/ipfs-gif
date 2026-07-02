@@ -7,15 +7,44 @@
     <input type="text" name="q" placeholder="Search all GIFs...">
     <button type="submit">Search</button>
 </form>
+{% if let Some(already_uploaded_alert) = already_uploaded_alert %}
+    <div class="alert-container">
+        {{ already_uploaded_alert|safe }}
+    </div>
+{% endif %}
 <section class="gif-detail">
     <div class="gif-preview">
         <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
     </div>
     <span class="gif-actions">
-        <a href="#" onclick="event.preventDefault(); copyLink('https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}')">
+        <a
+            id="copy-link"
+            hidden
+            href="#"
+        >
             <span class="bi bi-link" aria-hidden="true"></span>
             Copy Link
+            <div id="copy-link-tooltip" hidden class="gif-actions__tooltip">
+                Copied!
+            </div>
         </a>
+        <script>
+            (() => {
+                const copyLink = document.getElementById('copy-link');
+                const copyLinkTooltip = document.getElementById('copy-link-tooltip');
+                let copyLinkTooltipTimeout;
+                copyLink.removeAttribute('hidden');
+                copyLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.copyLink('https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}');
+                    copyLinkTooltip.removeAttribute('hidden');
+                    clearTimeout(copyLinkTooltipTimeout);
+                    copyLinkTooltipTimeout = setTimeout(() => {
+                        copyLinkTooltip.setAttribute('hidden', '');
+                    }, 3000);
+                });
+            })();
+        </script>
         <a href="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}&download=true" target="_blank">
             <span class="bi bi-download" aria-hidden="true"></span>
             Download
@@ -38,8 +67,8 @@
 
 {% if tags.len() > 0 %}
 <section class="tags">
-    {% for tag in tags %}
-        <a href="/tag/{{ tag }}">{{ tag }}</a>
+    {% for (tag_slug, tag) in tags %}
+        <a href="/tag/{{ tag_slug }}">{{ tag }}</a>
     {% endfor %}
 </section>
 {% endif %}

@@ -1,0 +1,36 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Report GIF{% endblock %}
+
+{% block page_content %}
+<section class="report-gif">
+    <div class="gif-preview">
+        <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
+    </div>
+    <form
+        action="/report/{{ gif.cid }}/"
+        method="POST"
+        class="report-gif__form"
+    >
+        <h1>Report GIF</h1>
+        <div class="form-control form-control--select">
+            <label for="report-gif-reason">What's wrong?</label>
+            <select
+                id="report-gif-reason"
+                name="reason"
+                autocomplete="off"
+                required
+            >
+                <option value=""></option>
+                <option value="illegal">Illegal content</option>
+                <option value="doxxing">Private information or doxxing</option>
+                <option value="gore">Real gore</option>
+                <option value="sexual">Sexual content or nudity</option>
+                <option value="dcma">I represent the copyright owner and want it removed</option>
+            </select>
+            <span class="form-control__select-arrow bi bi-chevron-down" aria-hidden="true"></span>
+        </div>
+        <button type="submit" class="report-gif__submit">Continue</button>
+    </form>
+</section>
+{% endblock %}

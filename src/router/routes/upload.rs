@@ -7,8 +7,16 @@ use garde::{ Validate, Report };
 use macros::{ RouteParamsContext, render_template };
 use std::collections::HashSet;
 
+use crate::database::{ self, Gif };
 use crate::ui_pages::upload::{ UploadTemplate };
-use crate::util::image_upload::{ transfer_temporary_image_to_ipfs };
+use crate::util::image_upload::{
+    get_file_extension,
+    get_temporary_image,
+    get_temporary_image_info,
+    transfer_image_to_ipfs,
+    add_ipfs_file_to_gifs_folder,
+};
+use crate::util::format;
 use crate::router::{ html_to_response, get_hx_target };
 use crate::router::context::{ BaseContext, Context, RouteParamContextGenerator };
 use crate::router::validation::{ create_simple_report };
@@ -82,6 +90,7 @@ pub struct PostUploadPageParams {
     pub temporary_file_filename: String,
 }
 
+#[axum::debug_handler]
 pub async fn post_upload(
     Context { context }: Context<PostUploadPageParams>,
 ) -> Response {
@@ -112,18 +121,94 @@ pub async fn post_upload(
         return send_upload_page_response(StatusCode::OK, page_context).await;
     }
 
-    let ipfs_transfer_result = transfer_temporary_image_to_ipfs(&context.params.temporary_file_filename).await;
-    if let Err(transfer_error) = ipfs_transfer_result {
+    let image_bytes_result = get_temporary_image(&temporary_file_filename).await;
+    if let Err(_image_bytes_error) = image_bytes_result {
+        page_context.params.validation_report = Some(
+            create_simple_report(String::from("image_transfer"), String::from("Image transfer failed."))
+        );
+        return send_upload_page_response(StatusCode::INTERNAL_SERVER_ERROR, page_context).await;
+    }
+    let image_bytes = image_bytes_result.unwrap();
+
+    let image_info_result = get_temporary_image_info(&temporary_file_filename).await;
+    if let Err(_image_info_error) = image_info_result {
+        page_context.params.validation_report = Some(
+            create_simple_report(String::from("image_parse"), String::from("Can't read image metadata."))
+        );
+        return send_upload_page_response(StatusCode::INTERNAL_SERVER_ERROR, page_context).await;
+    }
+    let image_info = image_info_result.unwrap();
+
+    let filename = create_filename(
+        context.params.description.as_str(),
+        &temporary_file_filename,
+    );
+
+    let ipfs_transfer_result = transfer_image_to_ipfs(
+        image_bytes,
+        &filename
+    ).await;
+    if let Err(_transfer_error) = ipfs_transfer_result {
         page_context.params.validation_report = Some(
             create_simple_report(String::from("image_transfer"), String::from("Image transfer failed."))
         );
         return send_upload_page_response(StatusCode::INTERNAL_SERVER_ERROR, page_context).await;
     }
     let cid = ipfs_transfer_result.unwrap();
-    tracing::info!("Uploaded image with CID {}", cid);
 
-    // TODO - replace with a redirect
-    return send_upload_page_response(StatusCode::BAD_REQUEST, page_context).await;
+    let mut redirect_to = match database::get_gif_by_cid(&cid).await {
+        Ok(_) => Some(format!("/gif/{}/?already-uploaded=true", cid)),
+        Err(_) => None,
+    };
+
+    if let Some(redirect_to) = redirect_to {
+        return Redirect::to(&redirect_to).into_response();
+    }
+
+    let _ = add_ipfs_file_to_gifs_folder(&cid, &filename).await;
+
+    redirect_to = Some(format!("/gif/{}/", cid));
+
+    let gif = Gif {
+        cid,
+        uploader_ip_address: context.ip_address.clone(),
+        filename,
+        description: context.params.description,
+        width: image_info.width,
+        height: image_info.height,
+        size: image_info.size,
+        frames: image_info.frames,
+        ..Gif::default()
+    };
+
+    let create_gif_result = database::create_gif(gif).await;
+    if let Err(_create_error) = create_gif_result {
+        page_context.params.validation_report = Some(
+            create_simple_report(String::from("server_error"), String::from("Database update failed."))
+        );
+        return send_upload_page_response(StatusCode::BAD_REQUEST, page_context).await;
+    }
+    let gif_id = create_gif_result.unwrap();
+
+    let tags = page_context.params.tags.split(",").collect::<Vec<&str>>();
+    for tag in tags {
+        let create_tag_result = database::create_tag(tag).await;
+        if let Err(_create_tag_error) = create_tag_result {
+            continue;
+        }
+        let tag_id = create_tag_result.unwrap();
+        let _ = database::add_tag_to_gif(gif_id, tag_id).await;
+    }
+
+    Redirect::to(&redirect_to.unwrap()).into_response()
+}
+
+fn create_filename(description: &str, temporary_filename: &str) -> String {
+    format!(
+        "{}.{}",
+        format::to_kebab_case(format::truncate(description, 250)),
+        get_file_extension(temporary_filename),
+    )
 }
 
 fn merge_tags(tags: &str, new_tag_name: &str, delete_tag_name: &str) -> String {

@@ -17,6 +17,17 @@ sudo dnf install openssl-devel
 brew install openssl@3
 ```
 
+ffprobe must be installed.
+
+```sh
+# Ubuntu/Debian
+sudo apt install -y ffmpeg
+# Fedora
+sudo dnf install -y ffmpeg
+# OSX
+brew install ffmpeg
+```
+
 A load balancer (like Nginx) needs to set the `X-Forwarded-For` header with the original requester IP address. This is **required**, otherwise rate limit checkers will unfairly impact all visitors.
 
 ```nginx

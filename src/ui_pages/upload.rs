@@ -61,6 +61,12 @@ fn get_validation_alert<'a>(report: &Option<Report>) -> Option<AlertTemplate<'a>
             if report_has_field(report, "image_transfer") {
                 message_html.push_str("<p>Image upload failed. Please notify the site admins if this continues to happen.</p>");
             }
+            if report_has_field(report, "image_parse") {
+                message_html.push_str("<p>This doesn't look like a valid image file that we accept. Please try a different image or re-encode it with another tool as a GIF.</p>");
+            }
+            if report_has_field(report, "image_already_exists") {
+                message_html.push_str("<p>This image was already added to the GIF database before. Thanks for your submission!</p>");
+            }
             if report_has_field(report, "description") {
                 message_html.push_str("<p><strong>Description:</strong> This is required and cannot be longer than 256 characters.</p>");
             }

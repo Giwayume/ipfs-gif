@@ -15,6 +15,8 @@ pub mod gif;
 pub mod home;
 pub mod page_not_found;
 pub mod privacy_policy;
+pub mod report;
+pub mod tag;
 pub mod terms_of_service;
 pub mod upload;
 
@@ -44,6 +46,12 @@ pub fn initialize() -> Router {
 
         .route("/privacy-policy", get(privacy_policy::get_privacy_policy))
         .route("/privacy-policy/", get(privacy_policy::get_privacy_policy))
+
+        .route("/report/{cid}", get(report::get_report))
+        .route("/report/{cid}/", get(report::get_report))
+
+        .route("/tag/{tag_hash}", get(tag::get_tag))
+        .route("/tag/{tag_hash}/", get(tag::get_tag))
 
         .route("/terms-of-service", get(terms_of_service::get_terms_of_service))
         .route("/terms-of-service/", get(terms_of_service::get_terms_of_service))

@@ -1,0 +1,23 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Explore "{{ tag_name }}" GIFs{% endblock %}
+
+{% block page_content %}
+<form action="/search/" class="gif-search">
+    <input type="text" name="q" placeholder="Search all GIFs...">
+    <button type="submit">Search</button>
+</form>
+
+<section class="explore">
+    <div class="explore__content">
+        <h1>Explore <strong>{{ tag_name }}</strong> GIFs</h1>
+        <div class="gif-grid">
+            {% for gif in gifs %}
+            <a href="/gif/{{ gif.cid }}" class="gif-card">
+                <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}" loading="lazy">
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
