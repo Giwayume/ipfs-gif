@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::marker::PhantomData;
 use askama::Template;
 use garde::{ Report };
 
@@ -10,7 +9,6 @@ use crate::ui_primitives::alert::AlertTemplate;
 #[derive(Template)]
 #[template(path = "ui_pages/upload.html", blocks = ["page_content", "upload_tags"])]
 pub struct UploadTemplate<'a> {
-    active_page: &'a str,
     description: String,
     tags: String,
     tags_split: Vec<String>,
@@ -20,8 +18,6 @@ pub struct UploadTemplate<'a> {
 }
 impl<'a> UploadTemplate<'a> {
     pub async fn new(context: &'a UploadPageContext) -> Result<UploadTemplate<'a>, Box<dyn Error>> {
-        let active_page: &str = "upload";
-
         let validation_alert = get_validation_alert(&context.params.validation_report);
 
         let description = context.params.description.clone();
@@ -39,7 +35,7 @@ impl<'a> UploadTemplate<'a> {
         };
 
         Ok(UploadTemplate {
-            active_page, description, tags, tags_split, temporary_file_filename, temporary_file_filepath, validation_alert,
+            description, tags, tags_split, temporary_file_filename, temporary_file_filepath, validation_alert,
         })
     }
 }

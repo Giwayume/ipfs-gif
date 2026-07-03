@@ -1,5 +1,5 @@
 use std::{
-    io::{ self, Cursor, Read, Seek },
+    io::{ self, Cursor },
     env,
     error::Error,
     path::PathBuf,
@@ -7,10 +7,13 @@ use std::{
 use axum::body::Bytes;
 use image::{
     ImageReader, ImageFormat,
+    AnimationDecoder, ImageDecoder,
+    codecs::gif::GifDecoder,
+    codecs::png::PngDecoder,
+    codecs::webp::WebPDecoder,
 };
 use reqwest::multipart::{ Form, Part };
 use serde::Deserialize;
-use serde_json::Value;
 use tokio::time::{ interval, Duration };
 use uuid::Uuid;
 
@@ -122,8 +125,6 @@ pub async fn get_temporary_image(
         );
     }
 
-    let file_extension = get_file_extension(temporary_image_filename);
-
     let bytes = match tokio::fs::read(&temporary_image_path).await {
         Ok(bytes) => bytes,
         Err(err) => {
@@ -152,7 +153,7 @@ pub async fn get_temporary_image_info(
         );
     }
 
-    let (width, height, size, frames) = match ffprobe::ffprobe(temporary_image_path) {
+    let (mut width, mut height, size, mut frames) = match ffprobe::ffprobe(&temporary_image_path) {
         Ok(info) => {
             let stream = match info.streams.first() {
                 Some(stream) => stream,
@@ -164,7 +165,7 @@ pub async fn get_temporary_image_info(
             let width = u32::try_from(stream.width.unwrap_or(1)).unwrap_or(1);
             let height = u32::try_from(stream.height.unwrap_or(1)).unwrap_or(1);
             let frames = stream.nb_frames.clone()
-                .unwrap_or_else(|| String::from("1"))
+                .unwrap_or_else(|| String::from("0"))
                 .parse::<u32>()
                 .unwrap_or(1);
 
@@ -178,6 +179,47 @@ pub async fn get_temporary_image_info(
             return Err(Box::new(err));
         }
     };
+
+    // This means ffprobe failed to find info about the image, fall back to the slow method
+    if width == 0 || height == 0 || frames == 0 {
+        let bytes = match tokio::fs::read(&temporary_image_path).await {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                tracing::warn!("Failed to read bytes from temporary image {:?}", err);
+                return Err(Box::new(err));
+            }
+        };
+
+        let reader = ImageReader::new(Cursor::new(&bytes)).with_guessed_format()?;
+        let format = reader.format().ok_or_else(|| std::io::Error::new(
+            std::io::ErrorKind::Other, "Unknown image format"
+        ))?;
+
+        (width, height, frames) = match format {
+            ImageFormat::Gif => {
+                let decoder = GifDecoder::new(Cursor::new(&bytes))?;
+                let (width, height) = decoder.dimensions();
+                let frames = u32::try_from(decoder.into_frames().take(2).count()).unwrap_or(1);
+                (width, height, frames)
+            },
+            ImageFormat::Png => {
+                let decoder = PngDecoder::new(Cursor::new(&bytes))?;
+                let (width, height) = decoder.dimensions();
+                let frames = u32::try_from(decoder.apng()?.into_frames().take(2).count()).unwrap_or(1);
+                (width, height, frames)
+            },
+            ImageFormat::WebP => {
+                let decoder = WebPDecoder::new(Cursor::new(&bytes))?;
+                let (width, height) = decoder.dimensions();
+                let frames = u32::try_from(decoder.into_frames().take(2).count()).unwrap_or(1);
+                (width, height, frames)
+            },
+            _ => return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Image format not supported.",
+            ))),
+        };
+    }
 
     Ok(ImageInfo {
         width,
@@ -250,7 +292,7 @@ pub async fn transfer_image_to_ipfs(
             return Err(Box::new(err));
         }
     };
-    let mut error_for_status_response = match upload_file_response.error_for_status() {
+    let error_for_status_response = match upload_file_response.error_for_status() {
         Ok(response) => response,
         Err(err) => {
             tracing::warn!("IPFS node returned an error status when uploading an image {:?}", err);

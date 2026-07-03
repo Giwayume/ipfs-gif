@@ -56,8 +56,41 @@ pub async fn get_tags_by_gif_id(id: u64) -> Result<Vec<Tag>, Box<dyn Error>> {
     )
 }
 
+async fn get_tag_by_name(name: &str) -> Result<Tag, Box<dyn Error>> {
+    Ok(
+        sqlx::query_as::<MySql, Tag>(r#"
+            SELECT *
+            FROM tags
+            WHERE tags.name = ?
+            LIMIT 1;
+        "#)
+            .bind(name)
+            .fetch_one(get_pool())
+            .await?
+    )
+}
+
 pub async fn create_tag(name: &str) -> Result<u64, Box<dyn Error>> {
     let pool = get_pool();
+
+    let check_exists_result = sqlx::query_as::<MySql, Tag>(r#"
+        SELECT *
+        FROM tags
+        WHERE tags.name = ?
+        LIMIT 1;
+    "#)
+        .bind(name)
+        .fetch_optional(pool)
+        .await;
+    
+    match check_exists_result {
+        Ok(result) => {
+            if let Some(existing_tag) = result {
+                return Ok(existing_tag.id);
+            }
+        },
+        _ => (),
+    }
 
     let result = sqlx::query(r#"
         INSERT INTO tags (name)
@@ -101,14 +134,16 @@ pub async fn add_tag_to_gif(gif_id: u64, tag_id: u64) -> Result<(), Box<dyn Erro
     }
 }
 
-pub async fn remove_tag_from_gif(gif_id: u64, tag_id: u64) -> Result<(), Box<dyn Error>> {
+pub async fn remove_tag_from_gif(gif_id: u64, tag_name: &str) -> Result<(), Box<dyn Error>> {
+    let tag = get_tag_by_name(tag_name).await?;
+
     let result = sqlx::query_as::<MySql, TagsGifs>(r#"
         DELETE FROM tags_gifs
         WHERE gif_id = ?
         AND tag_id = ?;
     "#)
         .bind(gif_id)
-        .bind(tag_id)
+        .bind(tag.id)
         .fetch_optional(get_pool())
         .await;
     

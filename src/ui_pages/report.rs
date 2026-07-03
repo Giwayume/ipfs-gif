@@ -1,10 +1,8 @@
 use std::error::Error;
-use std::io;
 use askama::Template;
 
 use crate::database::{ self, Gif };
 use crate::router::routes::report::ReportPageContext;
-use crate::util::secrets::{ secrets_config };
 
 #[derive(Template)]
 #[template(path = "ui_pages/report.html", blocks = ["page_content"])]

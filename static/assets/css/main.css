@@ -394,6 +394,16 @@ header {
     font-size: 1.125rem;
     height: 1rem;
     cursor: pointer;
+    position: relative;
+}
+.tags a[href] .bi-x::after,
+.tags .tag .bi-x::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -0.75rem;
+    bottom: -1rem;
+    right: -0.825rem;
 }
 
 .tags__add-combo-button {

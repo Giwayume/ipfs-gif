@@ -7,7 +7,7 @@ use askama::Template;
 use macros::{ RouteParamsContext, render_template };
 
 use crate::router::context::{ BaseContext, Context, RouteParamContextGenerator };
-use crate::ui_pages::page_not_found::{ PageNotFoundTemplate, PageNotFoundContentTemplate };
+use crate::ui_pages::page_not_found::{ PageNotFoundTemplate };
 use crate::router::{ html_to_response };
 
 #[derive(Default, RouteParamsContext)]
@@ -23,7 +23,7 @@ pub async fn get_page_not_found(
             &context,
             |hx_target, context| async move {
                 match hx_target.as_str() {
-                    "main-article" => render_template!(PageNotFoundContentTemplate, &context),
+                    "main-article" => render_template!(PageNotFoundTemplate, &context, page_content),
                     _ => render_template!(PageNotFoundTemplate, &context),
                 }
             }

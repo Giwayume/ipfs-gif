@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use axum::{
     extract::{ DefaultBodyLimit },
-    routing::{ delete, get, get_service, post },
+    routing::{ get, get_service, post },
     Router,
 };
 use tower_http::{
@@ -43,6 +43,8 @@ pub fn initialize() -> Router {
 
         .route("/gif/{cid}", get(gif::get_gif))
         .route("/gif/{cid}/", get(gif::get_gif))
+        .route("/gif/{cid}", post(gif::post_gif))
+        .route("/gif/{cid}/", post(gif::post_gif))
 
         .route("/privacy-policy", get(privacy_policy::get_privacy_policy))
         .route("/privacy-policy/", get(privacy_policy::get_privacy_policy))

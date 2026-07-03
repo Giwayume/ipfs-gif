@@ -90,7 +90,6 @@ pub struct PostUploadPageParams {
     pub temporary_file_filename: String,
 }
 
-#[axum::debug_handler]
 pub async fn post_upload(
     Context { context }: Context<PostUploadPageParams>,
 ) -> Response {

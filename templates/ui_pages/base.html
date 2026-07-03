@@ -14,7 +14,7 @@
         <meta
             name="htmx-config"
             content='{
-                "responseHandling":[
+                "responseHandling": [
                     { "code":"204", "swap": false },
                     { "code":"[23]..", "swap": true },
                     { "code":"[45]..", "swap": true, "error":true },
@@ -22,8 +22,9 @@
                 ]
             }'
         />
+        <script src="/assets/js/crypto.js?version=1.0"></script>
         <script defer src="/assets/js/htmx.min.js"></script>
-        <script defer src="/assets/js/main.js?version=1.1"></script>
+        <script defer src="/assets/js/main.js?version=1.0"></script>
         {% block page_head %}{% endblock %}
     </head>
     <body>

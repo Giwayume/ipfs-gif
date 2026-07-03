@@ -45,10 +45,40 @@
                 });
             })();
         </script>
-        <a href="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}&download=true" target="_blank">
+        <a
+            id="download-link"
+            href="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}&download=true"
+            download
+            target="_blank"
+        >
             <span class="bi bi-download" aria-hidden="true"></span>
             Download
         </a>
+        <script>
+            (() => {
+                const downloadLink = document.getElementById('download-link');
+                downloadLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    // IPFS gateway appears to respond in a much more stable manner to fetch
+                    // requests rather than letting the browser redirect to the link (times out a lot).
+                    fetch(downloadLink.getAttribute('href')).then((response) => {
+                        response.blob().then((blob) => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = '{{ gif.filename }}';
+                            a.rel = 'noopener';
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+                        });
+                    }).catch((error) => {
+                        window.open(downloadLink.getAttribute('href'), '_blank');
+                    });
+                });
+            })();
+        </script>
         <br>
         <button command="show-modal" commandfor="gif-embed-code">
             <span class="bi bi-code" aria-hidden="true"></span>
@@ -65,13 +95,78 @@
     </span>
 </section>
 
-{% if tags.len() > 0 %}
-<section class="tags">
-    {% for (tag_slug, tag) in tags %}
-        <a href="/tag/{{ tag_slug }}">{{ tag }}</a>
-    {% endfor %}
-</section>
+{% block upload_tags %}
+{% if tags.len() > 0 || gif.uploader_public_key.len() > 0 %}
+<form
+    id="upload-tags"
+    action="/gif/{{ gif.cid }}/"
+    method="POST"
+    hx-post="/gif/{{ gif.cid }}"
+    hx-target="#upload-tags"
+    hx-swap="outerHtml"
+>
+    {% if let Some(validation_alert) = validation_alert %}
+        <div class="alert-container">
+            {{ validation_alert|safe }}
+        </div>
+    {% endif %}
+    <section class="tags">
+        <input id="uploader-public-key" type="hidden" value="{{ gif.uploader_public_key }}" aria-hidden="true">
+        <input id="upload-signing-message" type="hidden" value="{{ update_signing_message }}" aria-hidden="true">
+        <input id="upload-signed-message" type="hidden" name="upload-signed-message" value="" aria-hidden="true">
+        {% for (tag_slug, tag) in tags %}
+        <a class="tag" href="/tag/{{ tag_slug }}">
+            {{ tag }}
+            <span
+                class="bi bi-x"
+                hidden
+                hx-post="/gif/{{ gif.cid }}"
+                hx-vals="{&quot;delete-tag-name&quot;:&quot;{{tag}}&quot;}"
+                hx-target="#upload-tags"
+                hx-swap="outerHtml"
+            ></span>
+        </a>
+        {% endfor %}
+        <div id="new-tag-combo-button" hidden class="tags__add-combo-button">
+            <input id="new-tag-name-input" name="new-tag-name" placeholder="Type a tag name..." aria-label="Enter a new tag name" autocomplete="off" autocapitalize="off">
+            <button
+                id="new-tag-submit-button"
+                type="submit"
+                aria-label="Add tag"
+            >
+                <span class="bi bi-plus"></span>
+            </button>
+        </div>
+        <script>
+            (async () => {
+                const uploaderPublicKey = document.getElementById('uploader-public-key').value;
+                if (uploaderPublicKey !== await window.getPublicSigningKey()) return;
+
+                const newTagComboButton = document.getElementById('new-tag-combo-button');
+                newTagComboButton.removeAttribute('hidden');
+
+                const uploadTags = document.getElementById('upload-tags');
+                uploadTags.querySelectorAll('.tag .bi-x').forEach((element) => {
+                    element.removeAttribute('hidden');
+                });
+
+                uploadTags.addEventListener('click', (e) => {
+                    const tagClose = e.target?.closest('.bi-x');
+                    if (tagClose) {
+                        e.preventDefault();
+
+                    }
+                }, true);
+
+                document.getElementById('upload-signed-message').value = await window.signMessage(
+                    document.getElementById('upload-signing-message').value
+                );
+            })();
+        </script>
+    </section>
+</form>
 {% endif %}
+{% endblock %}
 
 <dialog id="gif-embed-code">
     <button class="dialog__close" commandfor="gif-embed-code" command="close">Close</button>
