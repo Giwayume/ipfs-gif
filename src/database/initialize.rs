@@ -58,6 +58,28 @@ async fn create_tags_table() -> Result<(), Box<dyn Error + Send + Sync>> {
 }
 
 #[allow(unused)]
+async fn create_tag_tokens_table() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let result = sqlx::query_as::<MySql, IgnoreDataType>(r#"
+        CREATE TABLE IF NOT EXISTS tag_tokens (
+            tag_id BIGINT UNSIGNED NOT NULL,
+            token VARCHAR(64) NOT NULL,
+            PRIMARY KEY (tag_id, token),
+            CONSTRAINT fk_tag_tokens_tag
+                FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    "#)
+        .fetch_optional(get_pool())
+        .await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            tracing::error!("Error creating tag_tokens table {:?}", error);
+            Err(Box::new(error))
+        }
+    }
+}
+
+#[allow(unused)]
 async fn create_tags_gifs_table() -> Result<(), Box<dyn Error + Send + Sync>> {
     let result = sqlx::query_as::<MySql, IgnoreDataType>(r#"
         CREATE TABLE IF NOT EXISTS tags_gifs (
@@ -81,5 +103,6 @@ async fn create_tags_gifs_table() -> Result<(), Box<dyn Error + Send + Sync>> {
 pub async fn create_all_tables() {
     create_gifs_table().await;
     create_tags_table().await;
+    create_tag_tokens_table().await;
     create_tags_gifs_table().await;
 }

@@ -7,8 +7,22 @@
     <h1>Find. Share. Create GIFs.</h1>
     <p>The fastest way to discover and share animated moments.</p>
     
-    <form action="/search/" class="home__search-box">
-        <input type="text" name="q" placeholder="Search millions of GIFs...">
+    <form
+        action="/search/"
+        class="home__search-box"
+        hx-get="/search/"
+        hx-target="#main-article"
+        hx-push-url="true"
+        hx-swap="innerHtml show:window:top"
+    >
+        <input
+            type="text"
+            name="q"
+            placeholder="Search millions of GIFs..."
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+        >
         <button type="submit">Search</button>
     </form>
     

@@ -9,7 +9,10 @@
         <p>
             The primary purpose of this website is to build a public database of GIFs hosted on IPFS that anyone is free to search through.
             We host a simple API that any client can use to find GIFs without the need for authentication or an API key.
-            Note that the API may impose rate limiting based on IP address in order to prevent bot abuse.
+        </p>
+        <p>
+            Note that the API may impose rate limiting based on IP address in order to prevent bot abuse. When the user is being rate limited,
+            the API should return a status code of 429, and the response body cannot be expected to be in any specific format.
         </p>
         <h2>Searching for GIFs</h2>
         <p>GIFs are organized by search terms called "tags". When the user searches for a GIF, the tags are used to match search terms.</p>
@@ -33,7 +36,7 @@
         <p>
             <strong>Response Body Example:</strong>
             <code>{
-    "results": [
+    "media": [
         {
             "cid": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
             "filename": "example1.gif",
@@ -55,6 +58,77 @@
         <p>
             https://ipfs.io/ipfs/<strong>ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789</strong>?filename=example1.gif
         </p>
+
+        <h2>Find GIFs for a Tag</h2>
+        <p>GIFs may be retrieved for one specific tag at a time.</p>
+        <p>Tags are alphanumeric and lower-case. They may contain multiple space or dash separated words.</p>
+        <p>
+            <strong>Request Method:</strong>
+            GET
+        </p>
+        <p>
+            <strong>Request URL:</strong>
+            https://{{ website_host }}/api/v1/tag/{tagName}
+        </p>
+        <p>
+            <strong>Request Path Parameters:</strong>
+            <table>
+                <tr>
+                    <td>tagName</td>
+                    <td>
+                        The name of the tag to retrieve a list of GIFs for, for example:<br>
+                        https://{{ website_host }}/api/v1/tag/outdoor-activities
+                    </td>
+                </tr>
+            </table>
+        </p>
+        <p>
+            <strong>Response Body Example:</strong>
+            <code>{
+    "media": [
+        {
+            "cid": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
+            "filename": "example1.gif",
+            "description": "Dog fetching a frisbee"
+        },
+        {
+            "cid": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456780",
+            "filename": "example2.gif",
+            "description": "Flying a kite"
+        }
+    ]
+}</code>
+        </p>
+        <p>The response body is in the same format as the search API.</p>
+
+        <h2>Find Popular GIFs</h2>
+        <p>A list of the most popular GIFs may be retrieved.</p>
+        <p>
+            <strong>Request Method:</strong>
+            GET
+        </p>
+        <p>
+            <strong>Request URL:</strong>
+            https://{{ website_host }}/api/v1/popular
+        </p>
+        <p>
+            <strong>Response Body Example:</strong>
+            <code>{
+    "media": [
+        {
+            "cid": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
+            "filename": "example1.gif",
+            "description": "Dog fetching a frisbee"
+        },
+        {
+            "cid": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456780",
+            "filename": "example2.gif",
+            "description": "Flying a kite"
+        }
+    ]
+}</code>
+        </p>
+        <p>The response body is in the same format as the search API.</p>
     </div>
 </section>
 {% endblock %}

@@ -134,9 +134,16 @@ pub async fn post_upload(
         page_context.params.validation_report = Some(
             create_simple_report(String::from("image_parse"), String::from("Can't read image metadata."))
         );
-        return send_upload_page_response(StatusCode::INTERNAL_SERVER_ERROR, page_context).await;
+        return send_upload_page_response(StatusCode::BAD_REQUEST, page_context).await;
     }
     let image_info = image_info_result.unwrap();
+
+    if image_info.frames < 2 {
+        page_context.params.validation_report = Some(
+            create_simple_report(String::from("image_not_animated"), String::from("Can't read image metadata."))
+        );
+        return send_upload_page_response(StatusCode::BAD_REQUEST, page_context).await;
+    }
 
     let filename = create_filename(
         context.params.description.as_str(),
@@ -212,12 +219,13 @@ fn create_filename(description: &str, temporary_filename: &str) -> String {
 
 fn merge_tags(tags: &str, new_tag_name: &str, delete_tag_name: &str) -> String {
     let allowed = regex::Regex::new(r"[^A-Za-z0-9 ]+").unwrap();
-    tags.split(",")
+    let punctuation = regex::Regex::new(r"['-.]").unwrap();
+    punctuation.replace_all(tags, "").split(",")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .map(|s| allowed.replace_all(&s[..s.len().min(256)], "").to_string().to_lowercase())
         .chain(
-            new_tag_name.split(",")
+            punctuation.replace_all(new_tag_name, "").split(",")
                 .map(|s| s.trim())
                 .filter(|s| !s.is_empty())
                 .map(|s| allowed.replace_all(&s[..s.len().min(256)], "").to_string().to_lowercase())

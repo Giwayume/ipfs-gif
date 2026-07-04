@@ -14,7 +14,7 @@ pub use routes::initialize;
 
 use context::{ RouteContext };
 
-fn get_hx_target<'a>(headers: &'a HeaderMap) -> &'a str {
+pub fn get_hx_target<'a>(headers: &'a HeaderMap) -> &'a str {
     if let Some(hx_target) = headers.get("HX-Target") {
         if let Ok(value) = hx_target.to_str() {
             return value;

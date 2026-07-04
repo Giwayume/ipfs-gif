@@ -73,3 +73,4 @@ pub use tags::get_tags_by_gif_id;
 pub use tags::create_tag;
 pub use tags::add_tag_to_gif;
 pub use tags::remove_tag_from_gif;
+pub use tags::search_by_tags;

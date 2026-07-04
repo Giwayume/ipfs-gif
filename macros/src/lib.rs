@@ -148,10 +148,6 @@ pub fn render_template(input: TokenStream) -> TokenStream {
             Ok(template) => {
                 match std::panic::catch_unwind(|| {
                     #template_render_call
-                    // match template.#block_method.render() {
-                    //     Ok(html) => Ok(html),
-                    //     Err(e) => Err(crate::util::error::RenderingError::from(e)),
-                    // }
                 }) {
                     Ok(html) => html,
                     Err(e) => Err(crate::util::error::RenderingError::from(e)),

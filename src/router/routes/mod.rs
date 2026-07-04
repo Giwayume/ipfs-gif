@@ -5,9 +5,17 @@ use axum::{
     routing::{ get, get_service, post },
     Router,
 };
+use axum_governor::{
+    GovernorConfigBuilder,
+    GovernorLayer,
+    Quota,
+    nz,
+    extractor::PeerIp
+};
 use tower_http::{
     services::{ ServeDir },
 };
+use tower_http::cors::{ CorsLayer, Any };
 
 pub mod api;
 pub mod dcma;
@@ -16,6 +24,7 @@ pub mod home;
 pub mod page_not_found;
 pub mod privacy_policy;
 pub mod report;
+pub mod search;
 pub mod tag;
 pub mod terms_of_service;
 pub mod upload;
@@ -28,6 +37,18 @@ pub fn initialize() -> Router {
     // Uploaded assets
     let uploaded_files_path = PathBuf::from("uploads");
 
+    let api_cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_headers(Any)
+        .allow_methods(Any);
+    
+    let api_rate_limiting_config = GovernorConfigBuilder::default()
+        .with_extractor(PeerIp::default())
+        .expect_connect_info()
+        .quota_default(Quota::requests_per_second(nz!(60u32)))
+        .finish()
+        .unwrap();
+
     let app = Router::new()
         .merge(memory_router)
         .route("/", get(home::get_home))
@@ -37,6 +58,14 @@ pub fn initialize() -> Router {
 
         .route("/api", get(api::get_api))
         .route("/api/", get(api::get_api))
+        .merge(
+            Router::new()
+                .route("/api/v1/popular", get(api::get_api_v1_popular))
+                .route("/api/v1/search", get(api::get_api_v1_search))
+                .route("/api/v1/tag/{tag_hash}", get(api::get_api_v1_tag))
+                .layer(api_cors)
+                .layer(GovernorLayer::new(api_rate_limiting_config))
+        )
 
         .route("/dcma", get(dcma::get_dcma))
         .route("/dcma/", get(dcma::get_dcma))
@@ -51,6 +80,9 @@ pub fn initialize() -> Router {
 
         .route("/report/{cid}", get(report::get_report))
         .route("/report/{cid}/", get(report::get_report))
+
+        .route("/search", get(search::get_search))
+        .route("/search/", get(search::get_search))
 
         .route("/tag/{tag_hash}", get(tag::get_tag))
         .route("/tag/{tag_hash}/", get(tag::get_tag))

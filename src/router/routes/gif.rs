@@ -139,7 +139,8 @@ pub async fn post_gif(
 
 fn tags_from_input(new_tag_name: &str) -> Vec<String> {
     let allowed = regex::Regex::new(r"[^A-Za-z0-9 ]+").unwrap();
-    new_tag_name.split(",")
+    let punctuation = regex::Regex::new(r"['-.]").unwrap();
+    punctuation.replace_all(new_tag_name, "").split(",")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .map(|s| allowed.replace_all(&s[..s.len().min(256)], "").to_string().to_lowercase())

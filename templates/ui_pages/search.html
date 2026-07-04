@@ -1,0 +1,42 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}"{{ query }}" - Search Results{% endblock %}
+
+{% block page_content %}
+{% if needs_title_update %}
+    <title>"{{ query }}" - Search Results | Interplanetary GIFs</title>
+{% endif %}
+<form
+    action="/search/"
+    class="gif-search"
+    hx-get="/search/"
+    hx-target="#main-article"
+    hx-push-url="true"
+    hx-swap="innerHtml show:window:top"
+>
+    <input
+        id="site-search-query"
+        type="text"
+        name="q"
+        placeholder="Search all GIFs..."
+        value="{{ query }}"
+        autocapitalize="off"
+        autocomplete="off"
+        autocorrect="off"
+    >
+    <button type="submit">Search</button>
+</form>
+<section class="search-results">
+    <h1>Search Results</h1>
+    {% if gifs.len() == 0 %}
+    <p>No GIFs found for your search.</p>
+    {% endif %}
+    <div class="gif-grid">
+        {% for gif in gifs %}
+        <a href="/gif/{{ gif.cid }}" class="gif-card">
+            <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}" loading="lazy">
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
