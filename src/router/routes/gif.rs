@@ -1,13 +1,13 @@
 use axum::{
     http::{ StatusCode },
-    response::{ IntoResponse, Response },
+    response::{ IntoResponse, Response, Redirect },
 };
 use askama::Template;
 use garde::{ Validate, Report };
 use macros::{ RouteParamsContext, render_template };
 use std::collections::HashSet;
 
-use crate::database;
+use crate::database::{ self, Gif };
 use crate::util::{ crypto };
 use crate::ui_pages::gif::{ GifTemplate };
 use crate::router::{ html_to_response };
@@ -21,12 +21,30 @@ pub struct GifPageParams {
 
     #[route_param_source(source = "path", name = "cid", default = "")]
     pub cid: String,
+
+    #[route_param_source(source = "none")]
+    pub gif: Option<Gif>,
 }
 pub type GifPageContext = BaseContext<GifPageParams>;
 
 pub async fn get_gif(
-    Context { context }: Context<GifPageParams>,
+    Context { mut context }: Context<GifPageParams>,
 ) -> Response {
+
+    let gif = match database::get_gif_by_cid(&context.params.cid).await {
+        Ok(gif) => Some(gif),
+        Err(_) => None,
+    };
+
+    if let Some(gif) = &gif {
+        if gif.cid.is_some() && context.params.cid.starts_with("qt-") {
+            return Redirect::permanent(
+                format!("/gif/{}", gif.cid.as_deref().unwrap()).as_str()
+            ).into_response();
+        }
+    }
+    context.params.gif = gif;
+
     html_to_response(
         &context,
         |hx_target, context| async move {
@@ -71,6 +89,7 @@ pub async fn post_gif(
     let mut page_context = context.clone_with_params(GifPageParams {
         validation_report: None,
         cid: context.params.cid.clone(),
+        gif: None,
     });
 
     let validation_result = validate_gif_form(&context.params).await;
@@ -139,7 +158,7 @@ pub async fn post_gif(
 
 fn tags_from_input(new_tag_name: &str) -> Vec<String> {
     let allowed = regex::Regex::new(r"[^A-Za-z0-9 ]+").unwrap();
-    let punctuation = regex::Regex::new(r"['-.]").unwrap();
+    let punctuation = regex::Regex::new(r"['\-.]").unwrap();
     punctuation.replace_all(new_tag_name, "").split(",")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())

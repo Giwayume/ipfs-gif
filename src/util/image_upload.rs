@@ -17,9 +17,11 @@ use serde::Deserialize;
 use tokio::time::{ interval, Duration };
 use uuid::Uuid;
 
+use crate::database;
 use crate::util::secrets::{ secrets_config };
 
 pub static TEMPORARY_IMAGE_DIRECTORY: &str = "uploads/assets/images/tmp";
+pub static QUARANTINE_IMAGE_DIRECTORY: &str = "uploads/assets/images/quarantine";
 
 #[derive(Clone, Debug)]
 pub struct ImageInfo {
@@ -53,6 +55,28 @@ async fn get_temporary_storage_path() -> PathBuf {
             .parent()
             .unwrap()
             .join(TEMPORARY_IMAGE_DIRECTORY)
+    };
+
+    if !path.exists() {
+        tokio::fs::create_dir_all(&path).await.unwrap();
+    }
+
+    path
+}
+
+/**
+ * Returns the base path to the images quarantine folder where images are moved to
+ * after uploading in order to scan for NSFW content.
+ */
+async fn get_quarantine_storage_path() -> PathBuf {
+    let path = if cfg!(debug_assertions) {
+        env::current_dir().unwrap().join(QUARANTINE_IMAGE_DIRECTORY)
+    } else {
+        env::current_exe()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join(QUARANTINE_IMAGE_DIRECTORY)
     };
 
     if !path.exists() {
@@ -111,6 +135,7 @@ pub async fn store_temporary_image(content_type: String, data: Bytes) -> Result<
 /**
  * Retrieve the bytes of the temporary image.
  */
+#[allow(unused)]
 pub async fn get_temporary_image(
     temporary_image_filename: &str,
 ) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
@@ -230,6 +255,34 @@ pub async fn get_temporary_image_info(
 }
 
 /**
+ * Retrieve the bytes of the temporary image.
+ */
+pub async fn get_quarantine_image(
+    quarantine_image_filename: &str,
+) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+    let quarantine_storage_path = get_quarantine_storage_path().await;
+    let quarantine_image_path = quarantine_storage_path.join(quarantine_image_filename);
+
+    if !quarantine_image_path.exists() {
+        return Err(
+            Box::new(
+                io::Error::new(io::ErrorKind::Other, "Uploaded image not found.")
+            )
+        );
+    }
+
+    let bytes = match tokio::fs::read(&quarantine_image_path).await {
+        Ok(bytes) => bytes,
+        Err(err) => {
+            tracing::warn!("Failed to read bytes from quarantine image {:?}", err);
+            return Err(Box::new(err));
+        }
+    };
+
+    Ok(bytes)
+}
+
+/**
  * Every 30 minutes deletes temporary images that are over 30 minutes old.
  */
 pub async fn init_temporary_image_upload_cleanup() {
@@ -239,7 +292,7 @@ pub async fn init_temporary_image_upload_cleanup() {
         interval.tick().await;
 
         tracing::info!("Cleaning up temporary image uploads.");
-        let storage_path = get_temporary_storage_path().await;
+        let mut storage_path = get_temporary_storage_path().await;
         if let Ok(mut entries) = tokio::fs::read_dir(storage_path).await {
             while let Ok(Some(entry)) = entries.next_entry().await {
                 if let Ok(metadata) = entry.metadata().await {
@@ -255,12 +308,63 @@ pub async fn init_temporary_image_upload_cleanup() {
                 }
             }
         }
+
+        tracing::info!("Cleaning up quarantine image uploads.");
+        storage_path = get_quarantine_storage_path().await;
+        if let Ok(mut entries) = tokio::fs::read_dir(storage_path).await {
+            while let Ok(Some(entry)) = entries.next_entry().await {
+                if let Ok(metadata) = entry.metadata().await {
+                    if let Ok(modified) = metadata.modified() {
+                        if let Ok(elapsed) = modified.elapsed() {
+                            if elapsed.as_secs() > 3600 {
+                                if let Err(error) = tokio::fs::remove_file(entry.path()).await {
+                                    tracing::warn!("Error occurred when removing quarantine image upload. {:?}", error);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
 
 pub fn get_file_extension(filename: &str) -> String {
     filename.split(".").collect::<Vec<_>>().last().unwrap().to_string()
+}
+
+/**
+ * Move the temporary image to the quarantine folder for scanning.
+ */
+pub async fn transfer_temporary_image_to_quarantine(
+    temporary_image_filename: &str,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let temporary_storage_path = get_temporary_storage_path().await;
+    let temporary_image_path = temporary_storage_path.join(temporary_image_filename);
+
+    if !temporary_image_path.exists() {
+        return Err(
+            Box::new(
+                io::Error::new(io::ErrorKind::Other, "Uploaded image not found.")
+            )
+        );
+    }
+
+    let quarantine_image_path = get_quarantine_storage_path().await.join(
+        &temporary_image_filename
+    );
+
+    if let Err(error) = tokio::fs::rename(&temporary_image_path, &quarantine_image_path).await {
+        tracing::warn!("Error occurred when transferring temporary image to quarantine path {:?}", error);
+        return Err(
+            Box::new(
+                io::Error::new(io::ErrorKind::Other, "Move from temporary to quarantine folder failed.")
+            )
+        );
+    }
+
+    Ok(())
 }
 
 /**
@@ -368,3 +472,4 @@ pub async fn add_ipfs_file_to_gifs_folder(
 
     Ok(())
 }
+

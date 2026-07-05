@@ -1,3 +1,4 @@
 /uploads
 /target
 /config/secrets.toml
+/models/gantman-nsfw.onnx

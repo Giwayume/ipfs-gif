@@ -5,10 +5,10 @@
 {% block page_content %}
 <section class="report-gif">
     <div class="gif-preview">
-        <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
+        <img src="https://ipfs.io/ipfs/{{ gif.cid.as_deref().unwrap_or("") }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
     </div>
     <form
-        action="/report/{{ gif.cid }}/"
+        action="/report/{{ gif.cid.as_deref().unwrap_or("") }}/"
         method="POST"
         class="report-gif__form"
     >

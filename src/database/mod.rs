@@ -60,10 +60,16 @@ pub mod initialize;
 
 pub mod gifs;
 pub use gifs::Gif;
+pub use gifs::QuarantineScanResult;
 pub use gifs::get_popular_gifs;
 pub use gifs::get_gif_by_cid;
+pub use gifs::get_next_quarantined_gif;
 pub use gifs::create_gif;
 pub use gifs::update_gif;
+pub use gifs::update_gif_cid;
+pub use gifs::delete_gif_by_id;
+pub use gifs::delete_old_quarantine_gifs;
+pub use gifs::update_gif_quarantine_scan_result;
 pub use gifs::increment_gif_popularity;
 
 pub mod tags;

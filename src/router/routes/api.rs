@@ -1,12 +1,13 @@
 use axum::{
-    response::{ Response },
+    http::{ StatusCode },
+    response::{ Response, IntoResponse },
     Json,
 };
 use askama::Template;
 use macros::{ RouteParamsContext, render_template };
 use serde::Serialize;
 
-use crate::database;
+use crate::database::{ self, QuarantineScanResult };
 use crate::ui_pages::api::{ ApiTemplate };
 use crate::router::{ html_to_response };
 use crate::router::context::{ BaseContext, Context, RouteParamContextGenerator };
@@ -58,7 +59,7 @@ pub async fn get_api_v1_search(
 
     Json(ApiV1SearchResponse {
         media: gifs.into_iter().map(|gif| ApiV1SearchResponseGif {
-            cid: gif.cid,
+            cid: gif.cid.unwrap_or_else(|| String::from("")),
             filename: gif.filename,
             description: gif.description,
         }).collect(),
@@ -86,7 +87,7 @@ pub async fn get_api_v1_tag(
 
     Json(ApiV1SearchResponse {
         media: gifs.into_iter().map(|gif| ApiV1SearchResponseGif {
-            cid: gif.cid,
+            cid: gif.cid.unwrap_or_else(|| String::from("")),
             filename: gif.filename,
             description: gif.description,
         }).collect(),
@@ -107,9 +108,36 @@ pub async fn get_api_v1_popular(
 
     Json(ApiV1SearchResponse {
         media: gifs.into_iter().map(|gif| ApiV1SearchResponseGif {
-            cid: gif.cid,
+            cid: gif.cid.unwrap_or_else(|| String::from("")),
             filename: gif.filename,
             description: gif.description,
         }).collect(),
     })
+}
+
+#[derive(Default, RouteParamsContext)]
+pub struct ApiV1QuarantineParams {
+    #[route_param_source(source = "path", name = "quarantine_id", default = "")]
+    pub quarantine_id: String,
+}
+#[derive(Serialize)]
+pub struct ApiV1QuarantineResponse {
+    cid: Option<String>,
+    status: QuarantineScanResult,
+}
+
+pub async fn get_api_v1_quarantine(
+    Context { context }: Context<ApiV1QuarantineParams>,
+) -> Response {
+    let gif = match database::get_gif_by_cid(&context.params.quarantine_id).await {
+        Ok(gif) => gif,
+        Err(_) => {
+            return (StatusCode::NOT_FOUND).into_response();
+        }
+    };
+
+    Json(ApiV1QuarantineResponse {
+        cid: gif.cid,
+        status: gif.quarantine_scan_result,
+    }).into_response()
 }

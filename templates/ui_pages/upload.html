@@ -18,6 +18,13 @@
         {% if let Some(validation_alert) = validation_alert %}
             {{ validation_alert|safe }}
         {% endif %}
+        <input id="uploader-public-key" name="uploader-public-key" type="hidden" value="{{ uploader_public_key }}" aria-hidden="true">
+        <script>
+            (async () => {
+                const uploaderPublicKey = document.getElementById('uploader-public-key');
+                uploaderPublicKey.value = await window.getPublicSigningKey();
+            })();
+        </script>
         <div class="upload-section__columns">
             <div class="upload-gif-card">
                 <label for="gif-file">

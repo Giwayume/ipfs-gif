@@ -31,7 +31,7 @@ pub async fn get_gifs_by_tag(tag_name: &str, start: u64, length: u64) -> Result<
             FROM gifs g
             JOIN tags_gifs tg ON tg.gif_id = g.id
             JOIN tags t ON t.id = tg.tag_id
-            WHERE t.name = ?
+            WHERE t.name = ? AND g.cid IS NOT NULL
             ORDER BY g.popularity DESC
             LIMIT ?
             OFFSET ?;
@@ -261,7 +261,7 @@ fn pick_tags_greedy(
             .then_with(|| a.0.cmp(&b.0)) // id asc
     });
 
-    for (id, name, m) in stage_a {
+    for (id, name, _m) in stage_a {
         let tokens: Vec<&str> = name.split_whitespace().collect();
         if let Some(start) = find_first_tag_placement(&input, &tokens, &used_idx) {
             mark_tag_used(&mut used_idx, start, tokens.len());
@@ -335,7 +335,7 @@ fn pick_tags_greedy(
 
 pub async fn search_by_tags(search: &str, limit: u32) -> Result<Vec<Gif>, Box<dyn Error>> {
     let allowed = regex::Regex::new(r"[^A-Za-z0-9]+").unwrap();
-    let punctuation = regex::Regex::new(r"['-.]").unwrap();
+    let punctuation = regex::Regex::new(r"['\-.]").unwrap();
     let search_words = allowed.split(
         &punctuation.replace_all(search, " ")
     )
@@ -409,6 +409,7 @@ pub async fn search_by_tags(search: &str, limit: u32) -> Result<Vec<Gif>, Box<dy
         return Ok(Vec::new());
     }
 
+    // Find GIFs that have the specified picked_tag_ids
     qb = QueryBuilder::<MySql>::new(r#"
         SELECT
             g.*,
@@ -426,7 +427,7 @@ pub async fn search_by_tags(search: &str, limit: u32) -> Result<Vec<Gif>, Box<dy
     }
 
     qb.push(r#"
-        )
+        ) AND g.cid IS NOT NULL
         GROUP BY g.id
         HAVING COUNT(DISTINCT t.id) >= 1
         ORDER BY matched_tag_count DESC, g.popularity DESC

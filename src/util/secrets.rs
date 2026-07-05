@@ -5,9 +5,15 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct SecretsConfig {
+    pub admin: SecretsConfigAdmin,
     pub contact: SecretsConfigContact,
     pub ipfs: SecretsConfigIpfs,
     pub website: SecretsConfigWebsite,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SecretsConfigAdmin {
+    pub public_key: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -25,7 +31,8 @@ pub struct SecretsConfigIpfs {
 
 #[derive(Debug, Deserialize)]
 pub struct SecretsConfigWebsite {
-    pub host: String,
+    pub hostname: String,
+    pub port: u16,
 }
 
 static SECRETS_CONFIG: Lazy<SecretsConfig> = Lazy::new(|| {

@@ -11,12 +11,10 @@ use crate::database::{ self, Gif };
 use crate::ui_pages::upload::{ UploadTemplate };
 use crate::util::image_upload::{
     get_file_extension,
-    get_temporary_image,
     get_temporary_image_info,
-    transfer_image_to_ipfs,
-    add_ipfs_file_to_gifs_folder,
+    transfer_temporary_image_to_quarantine,
 };
-use crate::util::format;
+use crate::util::{ format, image_scan };
 use crate::router::{ html_to_response, get_hx_target };
 use crate::router::context::{ BaseContext, Context, RouteParamContextGenerator };
 use crate::router::validation::{ create_simple_report };
@@ -34,6 +32,9 @@ pub struct GetUploadPageParams {
 
     #[route_param_source(default = "")]
     pub temporary_file_filename: String,
+
+    #[route_param_source(default = "")]
+    pub uploader_public_key: String,
 }
 pub type UploadPageContext = BaseContext<GetUploadPageParams>;
 
@@ -88,6 +89,12 @@ pub struct PostUploadPageParams {
         custom(is_valid_image_upload(&self.temporary_file_filename, &self.file_upload)),
     )]
     pub temporary_file_filename: String,
+
+    #[route_param_source(source = "form", name = "uploader-public-key", default = "")]
+    #[garde(
+        length(max = 64),
+    )]
+    pub uploader_public_key: String,
 }
 
 pub async fn post_upload(
@@ -105,6 +112,7 @@ pub async fn post_upload(
         description: context.params.description.clone(),
         tags: merge_tags(&context.params.tags, &context.params.new_tag_name, &context.params.delete_tag_name),
         temporary_file_filename: temporary_file_filename.clone(),
+        uploader_public_key: context.params.uploader_public_key.clone(),
     });
 
     let validation_result = validate_upload_form(&context.params).await;
@@ -119,15 +127,6 @@ pub async fn post_upload(
     if hx_target == "upload-tags" {
         return send_upload_page_response(StatusCode::OK, page_context).await;
     }
-
-    let image_bytes_result = get_temporary_image(&temporary_file_filename).await;
-    if let Err(_image_bytes_error) = image_bytes_result {
-        page_context.params.validation_report = Some(
-            create_simple_report(String::from("image_transfer"), String::from("Image transfer failed."))
-        );
-        return send_upload_page_response(StatusCode::INTERNAL_SERVER_ERROR, page_context).await;
-    }
-    let image_bytes = image_bytes_result.unwrap();
 
     let image_info_result = get_temporary_image_info(&temporary_file_filename).await;
     if let Err(_image_info_error) = image_info_result {
@@ -150,34 +149,24 @@ pub async fn post_upload(
         &temporary_file_filename,
     );
 
-    let ipfs_transfer_result = transfer_image_to_ipfs(
-        image_bytes,
-        &filename
+    let quarantine_id = format!("qt-{}", &temporary_file_filename.replace(".", "-"));
+
+    let redirect_to = Some(format!("/gif/{}/", quarantine_id));
+
+    let quarantine_transfer_result = transfer_temporary_image_to_quarantine(
+        &temporary_file_filename,
     ).await;
-    if let Err(_transfer_error) = ipfs_transfer_result {
+    if let Err(_transfer_error) = quarantine_transfer_result {
         page_context.params.validation_report = Some(
-            create_simple_report(String::from("image_transfer"), String::from("Image transfer failed."))
+            create_simple_report(String::from("image_transfer"), String::from("Image transfer to quarantine failed."))
         );
         return send_upload_page_response(StatusCode::INTERNAL_SERVER_ERROR, page_context).await;
     }
-    let cid = ipfs_transfer_result.unwrap();
-
-    let mut redirect_to = match database::get_gif_by_cid(&cid).await {
-        Ok(_) => Some(format!("/gif/{}/?already-uploaded=true", cid)),
-        Err(_) => None,
-    };
-
-    if let Some(redirect_to) = redirect_to {
-        return Redirect::to(&redirect_to).into_response();
-    }
-
-    let _ = add_ipfs_file_to_gifs_folder(&cid, &filename).await;
-
-    redirect_to = Some(format!("/gif/{}/", cid));
 
     let gif = Gif {
-        cid,
+        quarantine_id,
         uploader_ip_address: context.ip_address.clone(),
+        uploader_public_key: context.params.uploader_public_key,
         filename,
         description: context.params.description,
         width: image_info.width,
@@ -195,6 +184,8 @@ pub async fn post_upload(
         return send_upload_page_response(StatusCode::BAD_REQUEST, page_context).await;
     }
     let gif_id = create_gif_result.unwrap();
+
+    image_scan::start_scanning_quarantine();
 
     let tags = page_context.params.tags.split(",").collect::<Vec<&str>>();
     for tag in tags {
@@ -219,7 +210,7 @@ fn create_filename(description: &str, temporary_filename: &str) -> String {
 
 fn merge_tags(tags: &str, new_tag_name: &str, delete_tag_name: &str) -> String {
     let allowed = regex::Regex::new(r"[^A-Za-z0-9 ]+").unwrap();
-    let punctuation = regex::Regex::new(r"['-.]").unwrap();
+    let punctuation = regex::Regex::new(r"['\-.]").unwrap();
     punctuation.replace_all(tags, "").split(",")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())

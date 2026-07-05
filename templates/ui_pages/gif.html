@@ -12,10 +12,70 @@
         {{ already_uploaded_alert|safe }}
     </div>
 {% endif %}
+{% if let Some(quarantined_alert) = quarantined_alert %}
+<div id="quarantined-alert" class="alert-container" hidden>
+    {{ quarantined_alert|safe }}
+</div>
+<script>
+    (async () => {
+        const quarantinedAlert = document.getElementById('quarantined-alert');
+        quarantinedAlert.removeAttribute('hidden');
+    })();
+</script>
+{% if gif.quarantine_scan_result == QuarantineScanResult::None %}
+<script>
+    (async () => {
+        let attemptCounter = 0;
+        let attemptWaitTime = 500;
+        while (attemptCounter < 100) {
+            if (!window.location.pathname.startsWith('/gif/{{ gif.quarantine_id }}')) {
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, attemptWaitTime));
+            if (!window.location.pathname.startsWith('/gif/{{ gif.quarantine_id }}')) {
+                break;
+            }
+            try {
+                const response = await fetch('/api/v1/quarantine/{{ gif.quarantine_id }}');
+                if (response.ok) {
+                    const quarantined = await response.json();
+                    if (quarantined.cid) {
+                        window.location.href = `/gif/${quarantined.cid}/`;
+                    } else if (quarantined.status !== 'None') {
+                        await fetch(location.href, {
+                            cache: 'no-store',
+                            headers: { 'Cache-Control': 'no-cache' }
+                        });
+                        window.location.reload();
+                    }
+                } else if (response.status === 404) {
+                    window.location.href = '/404/';
+                    break;
+                }
+            } catch (error) {}
+            attemptWaitTime = Math.min(5000, attemptWaitTime + 500);
+            attemptCounter++;
+        }
+        if (attemptCounter >= 100) {
+            window.location.reload();
+        }
+    })();
+</script>
+{% endif %}
+{% endif %}
+{% if let Some(quarantined_alert_noscript) = quarantined_alert_noscript %}
+<noscript>
+    <div class="alert-container">
+        {{ quarantined_alert_noscript|safe }}
+    </div>
+</noscript>
+{% endif %}
+
 <section class="gif-detail">
     <div class="gif-preview">
-        <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
+        <img src="{{ gif_img_src }}" alt="{{ gif.description }}">
     </div>
+    {% if quarantined_alert.is_none() %}
     <span class="gif-actions">
         <a
             id="copy-link"
@@ -36,7 +96,7 @@
                 copyLink.removeAttribute('hidden');
                 copyLink.addEventListener('click', (event) => {
                     event.preventDefault();
-                    window.copyLink('https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}');
+                    window.copyLink('{{ gif_img_src }}');
                     copyLinkTooltip.removeAttribute('hidden');
                     clearTimeout(copyLinkTooltipTimeout);
                     copyLinkTooltipTimeout = setTimeout(() => {
@@ -47,7 +107,7 @@
         </script>
         <a
             id="download-link"
-            href="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}&download=true"
+            href="{{ gif_img_src }}&download=true"
             download
             target="_blank"
         >
@@ -88,20 +148,21 @@
             <span class="bi bi-info-circle" aria-hidden="true"></span>
             Info
         </button>
-        <a href="/report/{{ gif.cid }}/">
+        <a href="/report/{{ cid }}/">
             <span class="bi bi-flag" aria-hidden="true"></span>
             Report
         </a>
     </span>
+    {% endif %}
 </section>
 
 {% block upload_tags %}
 {% if tags.len() > 0 || gif.uploader_public_key.len() > 0 %}
 <form
     id="upload-tags"
-    action="/gif/{{ gif.cid }}/"
+    action="/gif/{{ cid }}/"
     method="POST"
-    hx-post="/gif/{{ gif.cid }}"
+    hx-post="/gif/{{ cid }}"
     hx-target="#upload-tags"
     hx-swap="outerHtml"
 >
@@ -120,7 +181,7 @@
             <span
                 class="bi bi-x"
                 hidden
-                hx-post="/gif/{{ gif.cid }}"
+                hx-post="/gif/{{ cid }}"
                 hx-vals="{&quot;delete-tag-name&quot;:&quot;{{tag}}&quot;}"
                 hx-target="#upload-tags"
                 hx-swap="outerHtml"
@@ -173,7 +234,7 @@
     <h2>Embed this GIF</h2>
     <p>Use this embed code to add this GIF to your website or blog!</p>
     <div class="form-control">
-        <textarea aria-label="GIF Embed Code" maxlength="30" rows="4"><img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}"></textarea>
+        <textarea aria-label="GIF Embed Code" maxlength="30" rows="4"><img src="https://ipfs.io/ipfs/{{ cid }}?filename={{ gif.filename }}"></textarea>
     </div>
 </dialog>
 

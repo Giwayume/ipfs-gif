@@ -14,6 +14,7 @@ pub struct UploadTemplate<'a> {
     tags_split: Vec<String>,
     temporary_file_filename: String,
     temporary_file_filepath: String,
+    uploader_public_key: String,
     validation_alert: Option<AlertTemplate<'a>>,
 }
 impl<'a> UploadTemplate<'a> {
@@ -27,6 +28,7 @@ impl<'a> UploadTemplate<'a> {
             .filter(|s| !s.is_empty())
             .map(|s| s.to_string())
             .collect::<Vec<String>>();
+        let uploader_public_key = context.params.uploader_public_key.clone();
 
         let temporary_file_filepath = if !context.params.temporary_file_filename.is_empty() {
             format!("/assets/images/tmp/{}", &context.params.temporary_file_filename)
@@ -35,7 +37,13 @@ impl<'a> UploadTemplate<'a> {
         };
 
         Ok(UploadTemplate {
-            description, tags, tags_split, temporary_file_filename, temporary_file_filepath, validation_alert,
+            description,
+            tags,
+            tags_split,
+            temporary_file_filename,
+            temporary_file_filepath,
+            uploader_public_key,
+            validation_alert,
         })
     }
 }

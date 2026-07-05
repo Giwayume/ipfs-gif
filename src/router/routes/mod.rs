@@ -42,7 +42,14 @@ pub fn initialize() -> Router {
         .allow_headers(Any)
         .allow_methods(Any);
     
-    let api_rate_limiting_config = GovernorConfigBuilder::default()
+    let private_api_rate_limiting_config = GovernorConfigBuilder::default()
+        .with_extractor(PeerIp::default())
+        .expect_connect_info()
+        .quota_default(Quota::requests_per_second(nz!(60u32)))
+        .finish()
+        .unwrap();
+    
+    let public_api_rate_limiting_config = GovernorConfigBuilder::default()
         .with_extractor(PeerIp::default())
         .expect_connect_info()
         .quota_default(Quota::requests_per_second(nz!(60u32)))
@@ -60,11 +67,16 @@ pub fn initialize() -> Router {
         .route("/api/", get(api::get_api))
         .merge(
             Router::new()
+                .route("/api/v1/quarantine/{quarantine_id}", get(api::get_api_v1_quarantine))
+                .layer(GovernorLayer::new(private_api_rate_limiting_config))
+        )
+        .merge(
+            Router::new()
                 .route("/api/v1/popular", get(api::get_api_v1_popular))
                 .route("/api/v1/search", get(api::get_api_v1_search))
                 .route("/api/v1/tag/{tag_hash}", get(api::get_api_v1_tag))
                 .layer(api_cors)
-                .layer(GovernorLayer::new(api_rate_limiting_config))
+                .layer(GovernorLayer::new(public_api_rate_limiting_config))
         )
 
         .route("/dcma", get(dcma::get_dcma))

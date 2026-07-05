@@ -44,8 +44,8 @@
     <h2>Trending GIFs</h2>
     <div class="gif-grid">
         {% for gif in popular_gifs %}
-        <a href="/gif/{{ gif.cid }}" class="gif-card">
-            <img src="https://ipfs.io/ipfs/{{ gif.cid }}?filename={{ gif.filename }}" alt="{{ gif.description }}" loading="lazy">
+        <a href="/gif/{{ gif.cid.as_deref().unwrap_or("") }}" class="gif-card">
+            <img src="https://ipfs.io/ipfs/{{ gif.cid.as_deref().unwrap_or("") }}?filename={{ gif.filename }}" alt="{{ gif.description }}" loading="lazy">
         </a>
         {% endfor %}
     </div>

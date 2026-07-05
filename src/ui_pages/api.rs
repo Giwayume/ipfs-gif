@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::marker::PhantomData;
 use askama::Template;
 
 use crate::router::routes::api::ApiPageContext;
@@ -14,7 +13,7 @@ pub struct ApiTemplate<'a> {
 impl<'a> ApiTemplate<'a> {
     pub async fn new(_context: &'a ApiPageContext) -> Result<ApiTemplate<'a>, Box<dyn Error>> {
 
-        let website_host = &secrets_config().website.host;
+        let website_host = &secrets_config().website.hostname;
 
         Ok(ApiTemplate { website_host })
     }

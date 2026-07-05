@@ -41,6 +41,7 @@ You must create a "secrets.toml" file at `/config/secrets.toml` to provide the c
 ```
 [website]
 host = "example.com"
+port = 3000
 
 [database]
 host = "localhost"
@@ -56,6 +57,9 @@ port = 5001
 [contact]
 arbitration_opt_out_email = "arbitration@example.com"
 dcma_email = "dcma@example.com"
+
+[admin]
+public_key = ""
 ```
 
 Without this file, the application will not run. Ensure that the `secrets.toml` file has restrictive file permissions.
@@ -71,6 +75,16 @@ GIFs are uploaded and pinned to the [IPFS](https://ipfs.tech/) node you specify,
 ### 3. Contact Info
 
 This is mostly information used for legal contacts.
+
+### 4. Administrator GUI
+
+Generate a Ed25591 cryptographic signing key and configure `public_key` as the base64 encoding of the public key. These keys are already generated for regular users in Javascript with `window.getPublicSigningKey()`.
+
+## Non-Git Dependencies
+
+### NSFW Image Detection
+
+Download `model.onnx` from one of the [Fyko/nsfw releases](https://github.com/Fyko/nsfw/releases/tag/v0.2.0), and place the file at `/models/gantman-nsfw.onnx`. The `models` folder must be next to the executable.
 
 ## Building / Running
 
