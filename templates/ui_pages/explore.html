@@ -1,0 +1,41 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Explore{% endblock %}
+
+{% block page_content %}
+{% if needs_title_update %}
+    <title>Explore | Interplanetary GIFs</title>
+{% endif %}
+<form
+    action="/search/"
+    class="gif-search"
+    hx-get="/search/"
+    hx-target="#main-article"
+    hx-push-url="true"
+    hx-swap="innerHtml show:window:top"
+>
+    <input
+        id="site-search-query"
+        type="text"
+        name="q"
+        placeholder="Search all GIFs..."
+        autocapitalize="off"
+        autocomplete="off"
+        autocorrect="off"
+    >
+    <button type="submit">Search</button>
+</form>
+<section class="popular-tags">
+    <h1>Popular Tags</h1>
+    {% if tags.len() == 0 %}
+    <p>No Tags found.</p>
+    {% endif %}
+    <section class="tags">
+        {% for (tag_slug, tag) in tags %}
+        <a class="tag" href="/tag/{{ tag_slug }}">
+            {{ tag }}
+        </a>
+        {% endfor %}
+    </section>
+</section>
+{% endblock %}

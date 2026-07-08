@@ -1,5 +1,6 @@
 pub mod api;
 pub mod dcma;
+pub mod explore;
 pub mod home;
 pub mod gif;
 pub mod page_not_found;
@@ -8,4 +9,5 @@ pub mod report;
 pub mod search;
 pub mod tag;
 pub mod terms_of_service;
+pub mod trending;
 pub mod upload;

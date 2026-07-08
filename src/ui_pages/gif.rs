@@ -4,7 +4,7 @@ use garde::{ Report };
 
 use crate::router::routes::gif::GifPageContext;
 use crate::router::validation::report_has_field;
-use crate::database::{ self, Gif, QuarantineScanResult };
+use crate::database::{ self, Gif, GifModerationStatus, QuarantineScanResult, ModerationReport };
 use crate::ui_primitives::alert::AlertTemplate;
 use crate::util::{ format, crypto };
 
@@ -19,6 +19,8 @@ pub struct GifTemplate<'a> {
     quarantined_alert_noscript: Option<AlertTemplate<'a>>,
     tags: Vec<(String, String)>,
     update_signing_message: String,
+    has_dcma_claim: bool,
+    report_takedown_alert: Option<AlertTemplate<'a>>,
     validation_alert: Option<AlertTemplate<'a>>,
 }
 impl<'a> GifTemplate<'a> {
@@ -40,6 +42,34 @@ impl<'a> GifTemplate<'a> {
             database::get_gif_by_cid(&context.params.cid).await?
         };
         let cid = String::from(gif.cid.as_deref().unwrap_or_else(|| ""));
+
+        let has_dcma_claim = match gif.moderation_status {
+            GifModerationStatus::ManuallyReviewed => false,
+            GifModerationStatus::None => true,
+            _ => false,
+        };
+        let report_takedown_alert = match gif.moderation_status {
+            GifModerationStatus::DcmaTakedownNotice | GifModerationStatus::DcmaCounterClaim | GifModerationStatus::DcmaRemoved => {
+                let moderation_reports = database::get_moderation_reports_by_gif_id(gif.id).await?;
+                let first_moderation_report = moderation_reports.first();
+                let copyright_holder_name = match first_moderation_report {
+                    Some(report) => &report.copyright_holder_name,
+                    None => "",
+                };
+
+                Some(AlertTemplate {
+                    variant: "danger",
+                    message_html: format!("<p>This GIF has been copyright claimed by <strong>{}</strong>.</p>", copyright_holder_name),
+                })
+            },
+            GifModerationStatus::IllegalRemoved | GifModerationStatus::DoxxingRemoved | GifModerationStatus::GoreRemoved | GifModerationStatus::SexualRemoved => {
+                Some(AlertTemplate {
+                    variant: "danger",
+                    message_html: String::from("<p>This GIF has been removed due to violating our content policy.</p>"),
+                })
+            },
+            _ => None,
+        };
 
         let gif_img_src = if gif.cid.is_none() {
             format!("/assets/images/quarantine/{}",
@@ -100,6 +130,8 @@ impl<'a> GifTemplate<'a> {
             quarantined_alert_noscript,
             tags,
             update_signing_message,
+            has_dcma_claim,
+            report_takedown_alert,
             validation_alert,
         })
     }

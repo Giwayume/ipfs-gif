@@ -3,6 +3,7 @@ use askama::Template;
 use garde::{ Report };
 
 use crate::router::routes::upload::UploadPageContext;
+use crate::router::{ get_hx_target };
 use crate::router::validation::report_has_field;
 use crate::ui_primitives::alert::AlertTemplate;
 
@@ -10,6 +11,7 @@ use crate::ui_primitives::alert::AlertTemplate;
 #[template(path = "ui_pages/upload.html", blocks = ["page_content", "upload_tags"])]
 pub struct UploadTemplate<'a> {
     description: String,
+    needs_title_update: bool,
     tags: String,
     tags_split: Vec<String>,
     temporary_file_filename: String,
@@ -19,6 +21,7 @@ pub struct UploadTemplate<'a> {
 }
 impl<'a> UploadTemplate<'a> {
     pub async fn new(context: &'a UploadPageContext) -> Result<UploadTemplate<'a>, Box<dyn Error>> {
+        let needs_title_update = if get_hx_target(&context.route_headers).len() > 0 { true } else { false };
         let validation_alert = get_validation_alert(&context.params.validation_report);
 
         let description = context.params.description.clone();
@@ -38,6 +41,7 @@ impl<'a> UploadTemplate<'a> {
 
         Ok(UploadTemplate {
             description,
+            needs_title_update,
             tags,
             tags_split,
             temporary_file_filename,

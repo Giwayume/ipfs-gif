@@ -35,8 +35,8 @@ pub fn start_scanning_quarantine() {
 }
 
 async fn runner() -> bool {
-    let bytes = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/models/gantman-nsfw.onnx"));
-    let model = match create_model(Cursor::new(bytes)) {
+    let model_bytes = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/models/gantman-nsfw.onnx"));
+    let model = match create_model(Cursor::new(model_bytes)) {
         Ok(model) => model,
         Err(_) => {
             tracing::warn!("Failed to load the gantman-nsfw.onnx model.");

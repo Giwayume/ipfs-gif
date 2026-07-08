@@ -4,15 +4,93 @@
 
 {% block page_content %}
 <section class="report-gif">
+    {% if is_gif_visible %}
     <div class="gif-preview">
         <img src="https://ipfs.io/ipfs/{{ gif.cid.as_deref().unwrap_or("") }}?filename={{ gif.filename }}" alt="{{ gif.description }}">
     </div>
+    {% endif %}
+    {% if let Some(report_submitted_alert) = report_submitted_alert %}
+        {{ report_submitted_alert|safe }}
+    {% else %}
     <form
         action="/report/{{ gif.cid.as_deref().unwrap_or("") }}/"
         method="POST"
         class="report-gif__form"
     >
         <h1>Report GIF</h1>
+        {% if let Some(validation_alert) = validation_alert %}
+            {{ validation_alert|safe }}
+        {% endif %}
+        <input id="reporter-public-key" name="reporter-public-key" type="hidden" aria-hidden="true">
+        <script>
+            (async () => {
+                const reporterPublicKey = document.getElementById('reporter-public-key');
+                reporterPublicKey.value = await window.getPublicSigningKey();
+            })();
+        </script>
+        {% if reason == "dcma" %}
+        <div class="form">
+            <p>
+                In order to send a DCMA copyright infringement claim, you must either be the copyright holder or an authorized representative of the copyright holder.
+            </p>
+            <p>
+                Please note that it is <strong>illegal to submit false reports</strong> and doing so can land you with civil or criminal liabilities.
+            </p>
+            <p>
+                <strong>The information below will be published publicly to the website.</strong>
+            </p>
+            <input type="hidden" name="reason" value="dcma">
+            <div class="form-control">
+                <label for="copyright-holder-name">Copyright Holder Full Legal Name or Business Name</label>
+                <input id="copyright-holder-name" required name="copyright-holder-name" maxlength="256" value="{{ copyright_holder_name }}">
+            </div>
+            <div class="form-control">
+                <label for="reporter-name">Your Digital Signature (Full Legal Name)</label>
+                <input id="reporter-name" required name="reporter-name" maxlength="256" value="{{ reporter_name }}">
+            </div>
+            <div class="form-control">
+                <label for="reporter-mailing-address">Your Mailing Address</label>
+                <textarea id="reporter-mailing-address" required name="reporter-mailing-address" maxlength="512" rows="3" style="min-height:5rem">{{ reporter_mailing_address }}</textarea>
+            </div>
+            <div class="form-control">
+                <label for="reporter-phone">Your Phone Number</label>
+                <input id="reporter-phone" required type="tel" name="reporter-phone" maxlength="32" value="{{ reporter_phone }}">
+            </div>
+            <div class="form-control">
+                <label for="reporter-email">Your Email</label>
+                <input id="reporter-email" required type="email" name="reporter-email" maxlength="320" value="{{ reporter_email }}">
+            </div>
+            <p>
+                <input
+                    id="reporter-good-faith-attestation"
+                    name="reporter-good-faith-attestation"
+                    type="checkbox"
+                    required
+                    value="true"
+                    {% if reporter_good_faith_attestation == "true" %}checked{% endif %}
+                >
+                <label for="reporter-good-faith-attestation">
+                    I have good faith belief that this material is not authorized by the copyright owner, its agent, or the law
+                </label>
+            </p>
+            <p>
+                <input
+                    id="reporter-accuracy-attestation"
+                    name="reporter-accuracy-attestation"
+                    type="checkbox"
+                    required
+                    value="true"
+                    {% if reporter_accuracy_attestation == "true" %}checked{% endif %}
+                >
+                <label for="reporter-accuracy-attestation">
+                    Under penalty of perjury, I attest that the information provided is accurate and I am authorized to make the complaint on behalf of the copyright owner
+                </label>
+            </p>
+        </div>
+        {% else if reason.len() > 0 %}
+
+        {% else %}
+        <input type="hidden" name="action" value="select-reason">
         <div class="form-control form-control--select">
             <label for="report-gif-reason">What's wrong?</label>
             <select
@@ -30,7 +108,9 @@
             </select>
             <span class="form-control__select-arrow bi bi-chevron-down" aria-hidden="true"></span>
         </div>
+        {% endif %}
         <button type="submit" class="report-gif__submit">Continue</button>
     </form>
+    {% endif %}
 </section>
 {% endblock %}

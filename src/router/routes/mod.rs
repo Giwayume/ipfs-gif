@@ -19,6 +19,7 @@ use tower_http::cors::{ CorsLayer, Any };
 
 pub mod api;
 pub mod dcma;
+pub mod explore;
 pub mod gif;
 pub mod home;
 pub mod page_not_found;
@@ -27,6 +28,7 @@ pub mod report;
 pub mod search;
 pub mod tag;
 pub mod terms_of_service;
+pub mod trending;
 pub mod upload;
 
 pub fn initialize() -> Router {
@@ -82,6 +84,9 @@ pub fn initialize() -> Router {
         .route("/dcma", get(dcma::get_dcma))
         .route("/dcma/", get(dcma::get_dcma))
 
+        .route("/explore", get(explore::get_explore))
+        .route("/explore/", get(explore::get_explore))
+
         .route("/gif/{cid}", get(gif::get_gif))
         .route("/gif/{cid}/", get(gif::get_gif))
         .route("/gif/{cid}", post(gif::post_gif))
@@ -92,12 +97,17 @@ pub fn initialize() -> Router {
 
         .route("/report/{cid}", get(report::get_report))
         .route("/report/{cid}/", get(report::get_report))
+        .route("/report/{cid}", post(report::post_report))
+        .route("/report/{cid}/", post(report::post_report))
 
         .route("/search", get(search::get_search))
         .route("/search/", get(search::get_search))
 
         .route("/tag/{tag_hash}", get(tag::get_tag))
         .route("/tag/{tag_hash}/", get(tag::get_tag))
+
+        .route("/trending", get(trending::get_trending))
+        .route("/trending/", get(trending::get_trending))
 
         .route("/terms-of-service", get(terms_of_service::get_terms_of_service))
         .route("/terms-of-service/", get(terms_of_service::get_terms_of_service))

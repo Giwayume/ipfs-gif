@@ -26,7 +26,8 @@ async fn create_gifs_table() -> Result<(), Box<dyn Error + Send + Sync>> {
             width INTEGER UNSIGNED NOT NULL DEFAULT 0,
             height INTEGER UNSIGNED NOT NULL DEFAULT 0,
             size INTEGER UNSIGNED NOT NULL DEFAULT 0,
-            frames INTEGER UNSIGNED NOT NULL DEFAULT 0
+            frames INTEGER UNSIGNED NOT NULL DEFAULT 0,
+            moderation_status ENUM('none', 'dcma_takedown_notice', 'dcma_counter_claim', 'dcma_removed', 'illegal_removed', 'doxxing_removed', 'gore_removed', 'sexual_removed', 'manually_reviewed') DEFAULT 'none'
         ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     "#)
         .fetch_optional(get_pool())
@@ -39,6 +40,63 @@ async fn create_gifs_table() -> Result<(), Box<dyn Error + Send + Sync>> {
         }
     }
 }
+
+#[allow(unused)]
+async fn create_moderation_reports_table() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let result = sqlx::query_as::<MySql, IgnoreDataType>(r#"
+        CREATE TABLE IF NOT EXISTS moderation_reports (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            gif_id BIGINT UNSIGNED NOT NULL REFERENCES gifs(id) ON DELETE CASCADE,
+            report_time DATETIME DEFAULT NOW(),
+            report_type ENUM('other', 'dcma', 'illegal', 'doxxing', 'gore', 'sexual') DEFAULT 'other',
+            copyright_holder_name VARCHAR(256) DEFAULT '',
+            reporter_public_key VARCHAR(64) DEFAULT '',
+            reporter_ip_address VARCHAR(64) DEFAULT '',
+            reporter_name VARCHAR(256),
+            reporter_mailing_address VARCHAR(512),
+            reporter_phone VARCHAR(32),
+            reporter_email VARCHAR(320),
+            reporter_attestation VARCHAR(1024)
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    "#)
+        .fetch_optional(get_pool())
+        .await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            tracing::error!("Error creating moderation_reports table {:?}", error);
+            Err(Box::new(error))
+        }
+    }
+}
+
+#[allow(unused)]
+async fn create_moderation_counter_claims_table() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let result = sqlx::query_as::<MySql, IgnoreDataType>(r#"
+        CREATE TABLE IF NOT EXISTS moderation_counter_claims (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            report_id BIGINT UNSIGNED NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+            counter_claim_time DATETIME DEFAULT NOW(),
+            counter_claimant_public_key VARCHAR(64) DEFAULT '',
+            counter_claimant_ip_address VARCHAR(64) DEFAULT '',
+            counter_claimant_name VARCHAR(256),
+            counter_claimant_mailing_address VARCHAR(512),
+            counter_claimant_phone VARCHAR(32),
+            counter_claimant_email VARCHAR(320),
+            counter_claimant_attestation VARCHAR(256)
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    "#)
+        .fetch_optional(get_pool())
+        .await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            tracing::error!("Error creating moderation_counter_claims table {:?}", error);
+            Err(Box::new(error))
+        }
+    }
+}
+
 
 #[allow(unused)]
 async fn create_tags_table() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -105,6 +163,8 @@ async fn create_tags_gifs_table() -> Result<(), Box<dyn Error + Send + Sync>> {
 pub async fn create_all_tables() {
     create_gifs_table().await;
     create_tags_table().await;
+    create_moderation_reports_table().await;
+    create_moderation_counter_claims_table().await;
     create_tag_tokens_table().await;
     create_tags_gifs_table().await;
 }

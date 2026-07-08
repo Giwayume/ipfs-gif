@@ -31,6 +31,7 @@ pub struct ImageInfo {
     pub frames: u32,
 }
 
+#[allow(unused)]
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 struct IpfsAddResponse {

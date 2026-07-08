@@ -4,7 +4,7 @@
 
 {% block page_content %}
 <form action="/search/" class="gif-search">
-    <input type="text" name="q" placeholder="Search all GIFs...">
+    <input type="text" name="q" placeholder="Search all GIFs..." autocapitalize="none" autocomplete="off" autocorrect="off">
     <button type="submit">Search</button>
 </form>
 {% if let Some(already_uploaded_alert) = already_uploaded_alert %}
@@ -71,6 +71,14 @@
 </noscript>
 {% endif %}
 
+{% if let Some(report_takedown_alert) = report_takedown_alert %}
+<div class="alert-container">
+    {{ report_takedown_alert|safe }}
+    <p>
+        If you think this is a mistake, you can <a href="/counter-claim/{{ cid }}/">Submit a Counter-Notice</a>.
+    </p>
+</div>
+{% else %}
 <section class="gif-detail">
     <div class="gif-preview">
         <img src="{{ gif_img_src }}" alt="{{ gif.description }}">
@@ -228,6 +236,8 @@
 </form>
 {% endif %}
 {% endblock %}
+
+{% endif %}
 
 <dialog id="gif-embed-code">
     <button class="dialog__close" commandfor="gif-embed-code" command="close">Close</button>

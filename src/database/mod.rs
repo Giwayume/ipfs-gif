@@ -61,6 +61,7 @@ pub mod initialize;
 pub mod gifs;
 pub use gifs::Gif;
 pub use gifs::QuarantineScanResult;
+pub use gifs::GifModerationStatus;
 pub use gifs::get_popular_gifs;
 pub use gifs::get_gif_by_cid;
 pub use gifs::get_next_quarantined_gif;
@@ -72,10 +73,19 @@ pub use gifs::delete_old_quarantine_gifs;
 pub use gifs::update_gif_quarantine_scan_result;
 pub use gifs::increment_gif_popularity;
 
+pub mod moderation_report;
+pub use moderation_report::ModerationReport;
+pub use moderation_report::ModerationReportType;
+pub use moderation_report::ModerationCounterClaim;
+pub use moderation_report::get_moderation_reports_by_gif_id;
+pub use moderation_report::create_moderation_report;
+pub use moderation_report::create_moderation_counter_claim;
+
 pub mod tags;
 pub use tags::Tag;
 pub use tags::get_gifs_by_tag;
 pub use tags::get_tags_by_gif_id;
+pub use tags::get_popular_tags;
 pub use tags::create_tag;
 pub use tags::add_tag_to_gif;
 pub use tags::remove_tag_from_gif;

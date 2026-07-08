@@ -24,7 +24,23 @@ pub enum QuarantineScanResult {
     None,
 }
 
-#[allow(unused)]
+#[derive(Clone, Debug, Default, Display, EnumString, PartialEq, Serialize, Type)]
+#[sqlx(type_name = "quarantine_scan_result")]
+#[sqlx(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum GifModerationStatus {
+    DcmaTakedownNotice,
+    DcmaCounterClaim,
+    DcmaRemoved,
+    IllegalRemoved,
+    DoxxingRemoved,
+    GoreRemoved,
+    SexualRemoved,
+    ManuallyReviewed,
+    #[default]
+    None,
+}
+
 #[derive(Clone, Debug, Default, FromRow)]
 pub struct Gif {
     pub id: u64,
@@ -41,6 +57,7 @@ pub struct Gif {
     pub height: u32,
     pub size: u32,
     pub frames: u32,
+    pub moderation_status: GifModerationStatus,
 }
 
 pub async fn get_popular_gifs(start: u64, length: u64) -> Result<Vec<Gif>, Box<dyn Error>> {
@@ -48,7 +65,10 @@ pub async fn get_popular_gifs(start: u64, length: u64) -> Result<Vec<Gif>, Box<d
         sqlx::query_as::<MySql, Gif>(r#"
             SELECT gifs.*
             FROM gifs
-            WHERE gifs.cid IS NOT NULL
+            WHERE (
+                gifs.cid IS NOT NULL
+                AND gifs.moderation_status IN ('none', 'manually_reviewed')
+            )
             ORDER BY gifs.popularity DESC
             LIMIT ?
             OFFSET ?

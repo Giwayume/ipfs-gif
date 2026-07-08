@@ -109,6 +109,9 @@ header {
     margin: 0 auto;
     max-width: 1024px;
 }
+.alert-container a[href] {
+    color: white;
+}
 
 .alert {
     display: flex;
@@ -137,6 +140,9 @@ header {
 }
 .alert p {
     margin: 0;
+}
+.alert p + p {
+    margin-top: 0.5rem;
 }
 @keyframes alert-fade-in {
     0% { opacity: 0 }
@@ -207,6 +213,10 @@ header {
     background: #22d3ee;
     border-radius: 0 30px 30px 0;
     cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+.home__search-box button:hover {
+    box-shadow: 0 0 0 0.125rem white;
 }
 
 
@@ -361,6 +371,18 @@ header {
 /******\
 | Tags |
 \******/
+
+.popular-tags {
+    padding: 2rem 1rem;
+    margin: 0 auto;
+    max-width: 1024px;
+}
+.popular-tags h1 {
+    text-align: center;
+}
+.popular-tags .tags {
+    padding-top: 1rem;
+}
 
 .tags {
     display: flex;
@@ -540,6 +562,9 @@ header {
     border-radius: 0 30px 30px 0;
     cursor: pointer;
 }
+.gif-search button:hover {
+    box-shadow: 0 0 0 0.125rem white;
+}
 
 .gif-detail {
     background: var(--background-color-base-alt);
@@ -681,6 +706,61 @@ header {
 }
 .report-gif__submit:hover {
     box-shadow: 0 0 0 0.125rem white;
+}
+
+/******\
+| Form |
+\******/
+
+.form .form-control + .form-control,
+.form .form-control + .form-group,
+.form .form-group + .form-control,
+.form .form-group + .form-group {
+    margin-top: 0.75rem;
+}
+.form .form-control + .button {
+    margin-top: 0.75rem;
+}
+.form > p,
+.form :not(.alert) > p {
+    margin: 1rem 0;
+}
+.form > p:first-child,
+.form :not(.alert) > p:first-child {
+    margin-top: 0;
+}
+.form > p:last-child,
+.form :not(.alert) > p:last-child {
+    margin-bottom: 0;
+}
+.form__actions {
+    margin-top: 0.75rem;
+}
+
+.form--loading {
+    position: relative;
+}
+.form--loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(1px);
+    z-index: 100;
+}
+.form--loading::after {
+    content: 'Please wait a few seconds...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    text-align: center;
+    z-index: 101;
 }
 
 /**************\

@@ -3,6 +3,9 @@
 {% block page_title %}Home{% endblock %}
 
 {% block page_content %}
+{% if needs_title_update %}
+    <title>Home | Interplanetary GIFs</title>
+{% endif %}
 <section class="home__hero">
     <h1>Find. Share. Create GIFs.</h1>
     <p>The fastest way to discover and share animated moments.</p>

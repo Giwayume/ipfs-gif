@@ -31,7 +31,11 @@ pub async fn get_gifs_by_tag(tag_name: &str, start: u64, length: u64) -> Result<
             FROM gifs g
             JOIN tags_gifs tg ON tg.gif_id = g.id
             JOIN tags t ON t.id = tg.tag_id
-            WHERE t.name = ? AND g.cid IS NOT NULL
+            WHERE (
+                t.name = ?
+                AND g.cid IS NOT NULL
+                AND g.moderation_status IN ('none', 'manually_reviewed')
+            )
             ORDER BY g.popularity DESC
             LIMIT ?
             OFFSET ?;
@@ -53,6 +57,24 @@ pub async fn get_tags_by_gif_id(id: u64) -> Result<Vec<Tag>, Box<dyn Error>> {
             WHERE tg.gif_id = ?;
         "#)
             .bind(id)
+            .fetch_all(get_pool())
+            .await?
+    )
+}
+
+pub async fn get_popular_tags(start: u64, length: u64) -> Result<Vec<Tag>, Box<dyn Error>> {
+    Ok(
+        sqlx::query_as::<MySql, Tag>(r#"
+            SELECT t.*
+            FROM tags t
+            JOIN tags_gifs tg ON tg.tag_id = t.id
+            GROUP BY t.id, t.name
+            ORDER BY COUNT(*) DESC
+            LIMIT ?
+            OFFSET ?;
+        "#)
+            .bind(length)
+            .bind(start)
             .fetch_all(get_pool())
             .await?
     )
@@ -428,6 +450,7 @@ pub async fn search_by_tags(search: &str, limit: u32) -> Result<Vec<Gif>, Box<dy
 
     qb.push(r#"
         ) AND g.cid IS NOT NULL
+          AND g.moderation_status IN ('none', 'manually_reviewed')
         GROUP BY g.id
         HAVING COUNT(DISTINCT t.id) >= 1
         ORDER BY matched_tag_count DESC, g.popularity DESC

@@ -36,10 +36,10 @@
                         <img src="/assets/images/site/logo.png" alt="Interplanetary GIFs!">
                     </a>
                 </div>
-                <nav>
-                    <a href="#">Explore</a>
-                    <a href="#">Trending</a>
-                    <a href="/upload/">Upload</a>
+                <nav hx-target="#main-article" hx-push-url="true" hx-swap="innerHtml show:window:top">
+                    <a href="/explore/" hx-get="/explore/">Explore</a>
+                    <a href="/trending/" hx-get="/trending/">Trending</a>
+                    <a href="/upload/" hx-get="/upload/">Upload</a>
                 </nav>
             </header>
         {% endblock %}
