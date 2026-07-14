@@ -1,0 +1,79 @@
+{% extends "ui_pages/base.html" %}
+
+{% block page_title %}Submit a DCMA Counter-Notice{% endblock %}
+
+{% block page_content %}
+<section class="report-gif">
+    {% if let Some(counter_claim_submitted_alert) = counter_claim_submitted_alert %}
+        {{ counter_claim_submitted_alert|safe }}
+    {% else %}
+    <form
+        action="/counter-claim/{{ gif.cid.as_deref().unwrap_or("") }}/"
+        method="POST"
+        class="report-gif__form"
+    >
+        <h1>Submit a Counter-Notice</h1>
+        {% if let Some(validation_alert) = validation_alert %}
+            {{ validation_alert|safe }}
+        {% endif %}
+        <input id="counter-claimant-public-key" name="counter-claimant-public-key" type="hidden" aria-hidden="true">
+        <script>
+            (async () => {
+                const counterClaimantPublicKey = document.getElementById('counter-claimant-public-key');
+                counterClaimantPublicKey.value = await window.getPublicSigningKey();
+            })();
+        </script>
+        <div class="form">
+            <p>
+                In order to send a DCMA counter-notice, you must either be the copyright holder or an authorized representative of the copyright holder.
+            </p>
+            <input type="hidden" name="reason" value="dcma">
+            <div class="form-control">
+                <label for="counter-claimant-name">Your Digital Signature (Full Legal Name)</label>
+                <input id="counter-claimant-name" required name="counter-claimant-name" maxlength="256" value="{{ counter_claimant_name }}">
+            </div>
+            <div class="form-control">
+                <label for="counter-claimant-mailing-address">Your Mailing Address</label>
+                <textarea id="counter-claimant-mailing-address" required name="counter-claimant-mailing-address" maxlength="512" rows="3" style="min-height:5rem">{{ counter_claimant_mailing_address }}</textarea>
+            </div>
+            <div class="form-control">
+                <label for="counter-claimant-phone">Your Phone Number</label>
+                <input id="counter-claimant-phone" required type="tel" name="counter-claimant-phone" maxlength="32" value="{{ counter_claimant_phone }}">
+            </div>
+            <div class="form-control">
+                <label for="counter-claimant-email">Your Email</label>
+                <input id="counter-claimant-email" required type="email" name="counter-claimant-email" maxlength="320" value="{{ counter_claimant_email }}">
+            </div>
+            <p>
+                <input
+                    id="counter-claimant-good-faith-attestation"
+                    name="counter-claimant-good-faith-attestation"
+                    type="checkbox"
+                    required
+                    value="true"
+                    {% if counter_claimant_good_faith_attestation == "true" %}checked{% endif %}
+                >
+                <label for="counter-claimant-good-faith-attestation">
+                    I have a good faith belief that the material was removed as a result of mistake or a misidentification of the material
+                </label>
+            </p>
+            <p>
+                <input
+                    id="counter-claimant-service-attestation"
+                    name="counter-claimant-service-attestation"
+                    type="checkbox"
+                    required
+                    value="true"
+                    {% if counter_claimant_service_attestation == "true" %}checked{% endif %}
+                >
+                <label for="counter-claimant-service-attestation">
+                    I consent to the jurisdiction of the Federal Court for the judicial district in which my address is located,
+                    and that I will accept service of process from the person who provided notification of the alleged infringement
+                </label>
+            </p>
+        </div>
+        <button type="submit" class="report-gif__submit">Continue</button>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}

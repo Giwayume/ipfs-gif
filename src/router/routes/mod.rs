@@ -18,6 +18,7 @@ use tower_http::{
 use tower_http::cors::{ CorsLayer, Any };
 
 pub mod api;
+pub mod counter_claim;
 pub mod dcma;
 pub mod explore;
 pub mod gif;
@@ -80,6 +81,11 @@ pub fn initialize() -> Router {
                 .layer(api_cors)
                 .layer(GovernorLayer::new(public_api_rate_limiting_config))
         )
+
+        .route("/counter-claim/{cid}", get(counter_claim::get_counter_claim))
+        .route("/counter-claim/{cid}/", get(counter_claim::get_counter_claim))
+        .route("/counter-claim/{cid}", post(counter_claim::post_counter_claim))
+        .route("/counter-claim/{cid}/", post(counter_claim::post_counter_claim))
 
         .route("/dcma", get(dcma::get_dcma))
         .route("/dcma/", get(dcma::get_dcma))

@@ -30,11 +30,23 @@ impl<'a> ReportTemplate<'a> {
 
         let gif = database::get_gif_by_cid(&context.params.cid).await?;
 
-        let report_submitted_alert = if let Some(_) = context.route_query.get("report-submitted") {
-            Some(AlertTemplate {
-                variant: "success",
-                message_html: String::from("<p>Thank you, your report has been submitted successfully.</p>"),
-            })
+        let report_submitted_alert = if let Some(reason) = context.route_query.get("report-submitted") {
+            match reason.as_str() {
+                "dcma" => Some(AlertTemplate {
+                    variant: "success",
+                    message_html: format!(r#"
+                        <p>Thank you, your report has been submitted successfully.</p>
+                        <p>Please keep the following IPFS CID in your records for future reference: <strong>{}</strong></p>
+                        <p>If we receive a counter notice for this DCMA takedown, this image will be referenced by this CID.</p>
+                    "#, &context.params.cid),
+                }),
+                _ => Some(AlertTemplate {
+                    variant: "success",
+                    message_html: String::from(r#"
+                        <p>Thank you, your report has been submitted successfully.</p>
+                    "#),
+                })
+            }
         } else {
             None
         };

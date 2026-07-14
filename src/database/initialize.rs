@@ -83,7 +83,7 @@ async fn create_moderation_counter_claims_table() -> Result<(), Box<dyn Error + 
             counter_claimant_mailing_address VARCHAR(512),
             counter_claimant_phone VARCHAR(32),
             counter_claimant_email VARCHAR(320),
-            counter_claimant_attestation VARCHAR(256)
+            counter_claimant_attestation VARCHAR(1024)
         ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     "#)
         .fetch_optional(get_pool())

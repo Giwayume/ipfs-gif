@@ -54,6 +54,11 @@ protocol = "http:"
 host = "localhost"
 port = 5001
 
+[smtp]
+username = "admin"
+password = "password"
+relay_server_name = "smtp.example.com"
+
 [contact]
 arbitration_opt_out_email = "arbitration@example.com"
 dcma_email = "dcma@example.com"
@@ -72,11 +77,15 @@ ipfs-gif stores all of its metadata in a MySQL database. It may work in similar 
 
 GIFs are uploaded and pinned to the [IPFS](https://ipfs.tech/) node you specify, using the [Kubo RPC API](https://docs.ipfs.tech/reference/kubo/rpc/).
 
-### 3. Contact Info
+### 3. SMTP Relay Server
+
+Enter the information of a SMTP relay server used to send emails via StartTLS. This is used to manage DCMA claims.
+
+### 4. Contact Info
 
 This is mostly information used for legal contacts.
 
-### 4. Administrator GUI
+### 5. Administrator GUI
 
 Generate a Ed25591 cryptographic signing key and configure `public_key` as the base64 encoding of the public key. These keys are already generated for regular users in Javascript with `window.getPublicSigningKey()`.
 

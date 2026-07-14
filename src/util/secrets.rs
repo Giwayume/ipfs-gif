@@ -8,6 +8,7 @@ pub struct SecretsConfig {
     pub admin: SecretsConfigAdmin,
     pub contact: SecretsConfigContact,
     pub ipfs: SecretsConfigIpfs,
+    pub smtp: SecretsConfigSmtp,
     pub website: SecretsConfigWebsite,
 }
 
@@ -27,6 +28,13 @@ pub struct SecretsConfigIpfs {
     pub protocol: String,
     pub host: String,
     pub port: u16,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SecretsConfigSmtp {
+    pub username: String,
+    pub password: String,
+    pub relay_server_name: String,
 }
 
 #[derive(Debug, Deserialize)]

@@ -160,7 +160,7 @@ pub async fn post_report(
         return send_report_page_response(StatusCode::BAD_REQUEST, page_context).await;
     }
 
-    if context.params.action == "select-reason" {
+    if context.params.action == "select-reason" && context.params.reason == "dcma" {
         return send_report_page_response(StatusCode::OK, page_context).await;
     }
 
@@ -202,7 +202,11 @@ pub async fn post_report(
         reporter_mailing_address: context.params.reporter_mailing_address,
         reporter_phone: context.params.reporter_phone,
         reporter_email: context.params.reporter_email,
-        reporter_attestation: String::from("I have good faith belief that this material is not authorized by the copyright owner, its agent, or the law. Under penalty of perjury, I attest that the information provided is accurate and I am authorized to make the complaint on behalf of the copyright owner."),
+        reporter_attestation: if context.params.reason == "dcma" {
+            String::from("I have good faith belief that this material is not authorized by the copyright owner, its agent, or the law. Under penalty of perjury, I attest that the information provided is accurate and I am authorized to make the complaint on behalf of the copyright owner.")
+        } else {
+            String::from("")
+        },
         ..ModerationReport::default()
     };
 
@@ -216,7 +220,7 @@ pub async fn post_report(
     }
 
     return Redirect::to(
-        format!("/report/{}/?report-submitted=true", context.params.cid).as_str()
+        format!("/report/{}/?report-submitted={}", context.params.cid, context.params.reason).as_str()
     ).into_response();
 }
 
