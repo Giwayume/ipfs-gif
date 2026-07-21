@@ -9,8 +9,10 @@ memory-serve = "2.1.0"
 [dependencies]
 askama = "0.16.0"
 askama_escape = "0.16.0"
+async-trait = "0.1.91"
 axum = { version = "0.8.9", features = ["macros", "multipart"] }
 axum-governor = "2.0.3"
+axum-login = "0.18.0"
 base64 = "0.22.1"
 chrono = "0.4.45"
 cid = "0.11.3"
@@ -40,6 +42,7 @@ strum_macros = "0.28.0"
 tokio = { version = "1.52.3", features = ["full"] }
 toml = "1.1.2"
 tower-http = { version = "0.7.0", features = ["cors", "fs"] }
+tower-sessions = { version = "0.14.0", features = ["memory-store"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 urlencoding = "2.1.3"

@@ -1,6 +1,7 @@
 pub mod crypto;
 pub mod error;
 pub mod format;
+pub mod geolocation;
 pub mod image_scan;
 pub mod image_upload;
 pub mod secrets;

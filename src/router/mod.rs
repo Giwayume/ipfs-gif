@@ -7,6 +7,7 @@ use axum::{
 
 use crate::util::error::RenderingError;
 
+pub mod authn;
 pub mod context;
 pub mod routes;
 pub mod validation;

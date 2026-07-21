@@ -18,6 +18,7 @@ async fn main() {
     let _ = util::tracing::init_tracing();
     let _ = database::init_pool().await;
     let _ = database::initialize::create_all_tables().await;
+    let _ = router::authn::init_moderator_sessions().await;
     let _ = util::smtp::init_mailer();
     util::image_scan::start_scanning_quarantine();
     tokio::spawn(util::image_upload::init_temporary_image_upload_cleanup());

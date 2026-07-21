@@ -25,7 +25,9 @@ use regex::Regex;
 use serde_urlencoded;
 use urlencoding::encode;
 
+use crate::router::authn::{ update_moderator_session_ip, AuthSession, ModeratorSession };
 use crate::util::image_upload;
+use crate::util::geolocation;
 
 const BODY_SIZE_LIMIT: usize = 1024 * 10; // 10 KB
 
@@ -94,6 +96,7 @@ pub struct BaseContext<P> {
     pub route_original_uri: Uri,
     pub route_path_params: HashMap<String, String>,
     pub route_query: HashMap<String, String>,
+    pub user: Option<ModeratorSession>,
     pub validation_reports: HashMap<String, Report>,
 }
 impl<P> BaseContext<P> {
@@ -105,6 +108,7 @@ impl<P> BaseContext<P> {
             route_original_uri: self.route_original_uri.clone(),
             route_path_params: self.route_path_params.clone(),
             route_query: self.route_query.clone(),
+            user: self.user.clone(),
             validation_reports: self.validation_reports.clone(),
         }
     }
@@ -150,6 +154,12 @@ where
         let route_original_uri = OriginalUri::from_request_parts(& mut parts, state).await
             .map_err(|_| axum::response::Response::builder().status(400).body("Invalid original uri".into()).unwrap())?
             .0;
+        
+        let mut auth_session = AuthSession::from_request_parts(& mut parts, state).await
+            .map_err(|e| {
+                tracing::error!("foobar {:?}", e);
+                axum::response::Response::builder().status(400).body("Invalid auth session".into()).unwrap()
+            })?;
 
         let ip_address: String = match parts.headers.get("X-Forwarded-For") {
             Some(x_forwarded_for) => {
@@ -255,6 +265,31 @@ where
             );
         }
 
+        // Check if the user is within the geo-fence from the area they logged in from.
+        // Either update their IP if it's close enough, or revoke the login session.
+        if let Some(user) = &auth_session.user {
+            if user.ip_address != ip_address {
+                let location = match geolocation::find(&ip_address).await {
+                    Ok(location) => Some(location),
+                    Err(_) => None,
+                };
+                if let Some(location) = location {
+                    if geolocation::is_within_geo_fence(
+                        location.latitude,
+                        location.longitude,
+                        user.latitude,
+                        user.longitude,
+                    ) {
+                        update_moderator_session_ip(&user.id, &ip_address);
+                    } else {
+                        let _ = auth_session.logout().await;
+                    }
+                } else {
+                    let _ = auth_session.logout().await;
+                }
+            }
+        }
+
         let params: P = P::populate_from_context_extractor(&route_path_params, &route_query, &route_body);
 
         let route_headers: HeaderMap = parts.headers;
@@ -267,6 +302,7 @@ where
                 route_original_uri,
                 route_path_params,
                 route_query,
+                user: auth_session.user,
                 validation_reports: HashMap::new(),
             },
         })

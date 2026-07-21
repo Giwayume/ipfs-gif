@@ -12,10 +12,15 @@ use axum_governor::{
     nz,
     extractor::PeerIp
 };
+use axum_login::{
+    tower_sessions::{ MemoryStore, SessionManagerLayer },
+    AuthManagerLayerBuilder,
+};
 use tower_http::{
     services::{ ServeDir },
 };
 use tower_http::cors::{ CorsLayer, Any };
+use super::authn::Backend;
 
 pub mod api;
 pub mod counter_claim;
@@ -23,6 +28,7 @@ pub mod dcma;
 pub mod explore;
 pub mod gif;
 pub mod home;
+pub mod moderation_queue;
 pub mod page_not_found;
 pub mod privacy_policy;
 pub mod report;
@@ -58,6 +64,14 @@ pub fn initialize() -> Router {
         .quota_default(Quota::requests_per_second(nz!(60u32)))
         .finish()
         .unwrap();
+    
+    // Session layer.
+    let session_store = MemoryStore::default();
+    let session_layer = SessionManagerLayer::new(session_store);
+
+    // Auth service.
+    let backend = Backend::default();
+    let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
     let app = Router::new()
         .merge(memory_router)
@@ -98,6 +112,9 @@ pub fn initialize() -> Router {
         .route("/gif/{cid}", post(gif::post_gif))
         .route("/gif/{cid}/", post(gif::post_gif))
 
+        .route("/moderation-queue", get(moderation_queue::get_moderation_queue))
+        .route("/moderation-queue/", get(moderation_queue::get_moderation_queue))
+
         .route("/privacy-policy", get(privacy_policy::get_privacy_policy))
         .route("/privacy-policy/", get(privacy_policy::get_privacy_policy))
 
@@ -123,6 +140,7 @@ pub fn initialize() -> Router {
         .route("/upload", post(upload::post_upload).layer(DefaultBodyLimit::max(1024 * 1024 * 12)))
         .route("/upload/", post(upload::post_upload).layer(DefaultBodyLimit::max(1024 * 1024 * 12)))
 
+        .layer(auth_layer)
         .fallback_service(get_service(ServeDir::new(uploaded_files_path)));
 
     app
